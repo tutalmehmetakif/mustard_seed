@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mustard_seed/features/auth/data/bloc/auth_bloc.dart';
 import 'package:mustard_seed/features/auth/data/event/auth_event.dart';
 import 'package:mustard_seed/features/auth/data/state/auth_state.dart';
-import 'package:mustard_seed/features/auth/domain/presentation/pages/email_auth_page.dart';
 
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/widgets/glass_orb.dart';
+
 import '../bloc/onboarding_bloc.dart';
 import '../event/onboarding_event.dart';
 import '../state/onboarding_state.dart';
@@ -304,11 +305,7 @@ class _OnboardingStepThree extends StatelessWidget {
                             isLoading: isLoading,
                             onPressed: isLoading
                                 ? null
-                                : () => Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => const EmailAuthPage(),
-                                      ),
-                                    ),
+                                : () => context.push('/email-auth'),
                           ),
                           const SizedBox(height: 16),
                           TextButton(

@@ -3,14 +3,14 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:mustard_seed/core/routing/app_router.dart';
 import 'package:mustard_seed/features/auth/data/bloc/auth_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/theme/app_theme.dart';
 import 'features/auth/data/repositories/supabase_auth_repository.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
-import 'features/onboarding/presentation/pages/onboarding_page.dart';
-import 'features/splash/presentation/pages/splash_page.dart';
 
 void main() {
   // Yakalanmamış asenkron hataları (örn. bir stream'den beklenmedik bir
@@ -36,8 +36,17 @@ void main() {
   );
 }
 
-class HardalTanesiApp extends StatelessWidget {
+class HardalTanesiApp extends StatefulWidget {
   const HardalTanesiApp({super.key});
+
+  @override
+  State<HardalTanesiApp> createState() => _HardalTanesiAppState();
+}
+
+class _HardalTanesiAppState extends State<HardalTanesiApp> {
+  // Router bir kez oluşturulur — build() içinde yeniden oluşturulursa
+  // her rebuild'de navigasyon durumu sıfırlanabilir.
+  late final GoRouter _router = buildAppRouter();
 
   @override
   Widget build(BuildContext context) {
@@ -47,43 +56,15 @@ class HardalTanesiApp extends StatelessWidget {
         create: (context) => AuthBloc(
           authRepository: context.read<AuthRepository>(),
         ),
-        child: MaterialApp(
+        child: MaterialApp.router(
           title: 'Hardal Tanesi',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: ThemeMode.light, // Karanlık mod şimdilik pasif.
-          home: const _RootFlow(),
+          routerConfig: _router,
         ),
       ),
-    );
-  }
-}
-
-/// Splash -> Onboarding akışını yönetir.
-/// İleride oturum durumuna göre (giriş yapılmışsa direkt ana ekrana)
-/// yönlendirme eklenmek istenirse bu widget genişletilebilir.
-class _RootFlow extends StatelessWidget {
-  const _RootFlow();
-
-  @override
-  Widget build(BuildContext context) {
-    return SplashPage(
-      onCompleted: () {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => OnboardingPage(
-              onCompleted: () {
-                // TODO: Auth tamamlandı — ana ekran akışı bağlanınca
-                // burası güncellenecek.
-                debugPrint(
-                  'Onboarding tamamlandı — sıradaki ekrana yönlendirilecek.',
-                );
-              },
-            ),
-          ),
-        );
-      },
     );
   }
 }

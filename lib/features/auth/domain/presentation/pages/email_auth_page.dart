@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mustard_seed/core/theme/app_colors.dart';
 import 'package:mustard_seed/core/theme/app_text_styles.dart';
 import 'package:mustard_seed/core/utils/responsive.dart';
@@ -73,7 +74,7 @@ class _EmailAuthPageState extends State<EmailAuthPage> {
         listenWhen: (previous, current) => previous.status != current.status,
         listener: (context, state) {
           if (state.status == AuthStatus.authenticated) {
-            Navigator.of(context).pop();
+            context.pop();
           } else if (state.status == AuthStatus.emailConfirmationRequired) {
             setState(() => _mode = _EmailAuthMode.signIn);
             showDialog<void>(
@@ -92,7 +93,7 @@ class _EmailAuthPageState extends State<EmailAuthPage> {
                 ),
                 actions: [
                   TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                     child: Text(
                       'Tamam',
                       style: AppTextStyles.bodyMd(

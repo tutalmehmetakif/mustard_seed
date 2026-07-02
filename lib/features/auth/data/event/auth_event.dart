@@ -52,6 +52,11 @@ class AuthEmailSignInRequested extends AuthEvent {
   List<Object?> get props => [email, password];
 }
 
+/// Kullanıcı profil ekranında "Çıkış Yap"a bastı.
+class AuthSignOutRequested extends AuthEvent {
+  const AuthSignOutRequested();
+}
+
 /// Repository'deki `authStateChanges` stream'inden gelen dahili event.
 /// Doğrudan UI tarafından tetiklenmez, OAuth akışı tamamlanınca
 /// AuthBloc kendi içinde tetikler.

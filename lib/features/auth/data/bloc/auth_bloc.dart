@@ -25,6 +25,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthEmailSignUpRequested>(_onEmailSignUpRequested);
     on<AuthEmailSignInRequested>(_onEmailSignInRequested);
     on<AuthGuestContinueRequested>(_onGuestContinueRequested);
+    on<AuthSignOutRequested>(_onSignOutRequested);
     on<AuthUserChanged>(_onUserChanged);
     on<AuthStreamErrorReceived>(_onStreamErrorReceived);
 
@@ -116,6 +117,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } on AuthFailure catch (e) {
       emit(state.copyWith(status: AuthStatus.failure, errorMessage: e.message));
     }
+  }
+
+  Future<void> _onSignOutRequested(
+    AuthSignOutRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    try {
+      await _authRepository.signOut();
+    } on AuthFailure catch (_) {
+      // signOut nadiren başarısız olur; olsa da kullanıcıyı yerel olarak
+      // çıkış yapmış sayıyoruz — aşağıdaki emit her durumda çalışır.
+    }
+    // Misafir modunda gerçek bir Supabase session'ı olmadığı için
+    // authStateChanges hiç tetiklenmeyebilir — bu yüzden burada state'i
+    // baştan (unauthenticated, user: null) sıfırlıyoruz.
+    emit(const AuthState());
   }
 
   void _onUserChanged(AuthUserChanged event, Emitter<AuthState> emit) {

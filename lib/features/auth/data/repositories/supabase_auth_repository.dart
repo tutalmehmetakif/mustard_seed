@@ -112,6 +112,15 @@ class SupabaseAuthRepository implements AuthRepository {
     // await _client.auth.signInAnonymously();
   }
 
+  @override
+  Future<void> signOut() async {
+    try {
+      await _client.auth.signOut();
+    } catch (error) {
+      throw _mapError(error);
+    }
+  }
+
   /// Supabase'in `AuthException`'ını (ve beklenmeyen diğer hataları),
   /// kullanıcıya gösterilebilir Türkçe [AuthFailure] mesajına çevirir.
   AuthFailure _mapError(Object error) {

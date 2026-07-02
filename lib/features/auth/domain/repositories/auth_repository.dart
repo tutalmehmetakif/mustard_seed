@@ -44,4 +44,7 @@ abstract class AuthRepository {
 
   /// Backend'e bağlanmadan "misafir" olarak devam edilmesini işaretler.
   Future<void> continueAsGuest();
+
+  /// Aktif oturumu (varsa) kapatır.
+  Future<void> signOut();
 }
