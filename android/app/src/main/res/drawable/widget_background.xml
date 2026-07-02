@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Widget kartının arkaplanı: yarı saydam koyu overlay, yuvarlak köşeler.
+  Doküman: "Widget kullanıcının kendi fotoğrafının üstünde şeffaf yüzer."
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#66000000" />
+    <corners android:radius="20dp" />
+</shape>

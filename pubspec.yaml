@@ -20,6 +20,9 @@ dependencies:
   # Backend
   supabase_flutter: ^2.6.0
 
+  # Kilit ekranı / ana ekran widget köprüsü
+  home_widget: ^0.7.0
+
   # Tipografi (Inter fontu için — pubspec'e font dosyası eklemeden kullanmayı sağlar)
   google_fonts: ^6.2.1
 

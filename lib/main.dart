@@ -4,13 +4,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mustard_seed/core/routing/app_router.dart';
 import 'package:mustard_seed/features/auth/data/bloc/auth_bloc.dart';
+import 'package:mustard_seed/features/home/data/widget_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/data/repositories/supabase_auth_repository.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
+
 
 void main() {
   // Yakalanmamış asenkron hataları (örn. bir stream'den beklenmedik bir
@@ -27,6 +29,15 @@ void main() {
         url: 'https://smdtadmonbyxrklhiyxf.supabase.co',
         anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtZHRhZG1vbmJ5eHJrbGhpeXhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NzUxMTQsImV4cCI6MjA5ODU1MTExNH0.fffwQXvwCindm3UfqFyWqK_vTqWr_2It3vnv9uMxf9c',
       );
+
+      // Kilit ekranı / ana ekran widget'ına günün ayetini gönderiyoruz.
+      // TODO(widget-refresh): Şu an sadece uygulama açılışında
+      // senkronize ediyor. Gün değiştiğinde widget'ın otomatik
+      // güncellenmesi için ileride Android'de WorkManager, iOS'ta
+      // Timeline (WidgetKit'in kendi mekanizması) ile periyodik
+      // yenileme eklenmesi gerekecek.
+      await WidgetService.init();
+      await WidgetService.syncDailyVerse();
 
       runApp(const HardalTanesiApp());
     },

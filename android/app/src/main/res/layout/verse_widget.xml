@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Ana ekran widget'ının görsel düzeni. Doküman ve gönderilen örnek
+  görsellere göre: üstte ay evresi + Hicri tarih, altında ayet metni,
+  en altta sure + ayet numarası (hardal sarısı vurgu).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/widget_background">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/moon_phase"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hilal"
+            android:textColor="#C9A227"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:text="\u00B7"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/hijri_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="19 Zilhicce 1446"
+            android:textColor="#E0E0E0"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/verse_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="&#8220;Her zorlukla birlikte bir kolayl\u0131k vard\u0131r.&#8221;"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:textStyle="italic"
+        android:maxLines="3"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/verse_reference"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="\u0130n\u015firah Suresi \u00B7 6. Ayet"
+        android:textColor="#C9A227"
+        android:textSize="10sp"
+        android:textAllCaps="true" />
+
+</LinearLayout>
