@@ -3,12 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../event/onboarding_event.dart';
 import '../state/onboarding_state.dart';
 
-/// Onboarding akışının 3 adımını yönetir.
-///
-/// Auth entegrasyonu henüz bağlanmadığı için "Apple ile Giriş Yap" ve
-/// "Hesapsız devam et" aksiyonları da şimdilik [OnboardingNextPressed] ile
-/// aynı davranıyor: son adımdaysa onboarding'i tamamlanmış sayıyor.
-/// Gerçek auth akışı eklenince bu davranış ayrıştırılacak (bkz. TODO).
+/// Onboarding akışının 3 adımını yönetir (adım geçişi, "Geç", nokta
+/// göstergesi navigasyonu). Son adımdaki Google/Apple/Misafir girişleri
+/// artık ayrı bir [AuthBloc] üzerinden yönetiliyor — bkz.
+/// features/auth/presentation/bloc/auth_bloc.dart ve onboarding_page.dart.
 class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   OnboardingBloc() : super(const OnboardingState()) {
     on<OnboardingNextPressed>(_onNextPressed);
@@ -20,11 +18,9 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     OnboardingNextPressed event,
     Emitter<OnboardingState> emit,
   ) {
-    if (state.isLastStep) {
-      // TODO(auth): Burada gerçek auth akışı bağlanınca
-      // "Apple ile Giriş Yap" ve "Hesapsız devam et" ayrı event'lere ayrılmalı.
-      emit(state.copyWith(status: OnboardingStatus.completed));
-    } else {
+    // Son adımda (step 3) artık "ileri" ile değil, AuthBloc üzerinden
+    // Google/Apple/Misafir seçimiyle tamamlanıyor — bkz. onboarding_page.dart.
+    if (!state.isLastStep) {
       emit(state.copyWith(currentStep: state.currentStep + 1));
     }
   }
