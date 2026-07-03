@@ -1,4 +1,4 @@
-package com.example.mustard_seed
+package com.hardaltanesi.app
 
 import io.flutter.embedding.android.FlutterActivity
 

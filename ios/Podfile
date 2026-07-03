@@ -39,5 +39,45 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      config.build_settings['ENABLE_APP_INTENTS_METADATA'] = 'NO'
+    end
   end
+
+  # Widget Extension eklenince Xcode'un verdigi "dependency cycle" hatalarini
+  # onlemek icin uyguladigimiz duzeltmeler. Xcode zaman zaman projeyi
+  # "upgrade" edip bu ayarlari sifirlayabiliyor - bu yuzden hepsini burada,
+  # her pod install'da otomatik uygulanacak sekilde tutuyoruz.
+  project_path = File.expand_path('Runner.xcodeproj', __dir__)
+  runner_project = Xcodeproj::Project.open(project_path)
+
+  runner_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['ENABLE_APP_INTENTS_METADATA'] = 'NO'
+      config.build_settings['OTHER_SWIFT_FLAGS'] = [
+        '$(inherited)',
+        '-Xfrontend', '-disable-autolink-framework',
+        '-Xfrontend', 'AppIntents',
+      ]
+    end
+
+    next unless target.name == 'Runner'
+
+    target.build_phases.each do |phase|
+      next unless phase.is_a?(Xcodeproj::Project::Object::PBXShellScriptBuildPhase)
+
+      # "Based on dependency analysis" kapalı kalsın.
+      phase.always_out_of_date = '1'
+
+      # "Thin Binary" fazının Info.plist'i "Input Files" olarak görmesini
+      # engelliyoruz - bu, Info.plist -> LaunchScreen -> Thin Binary
+      # döngüsüne sebep oluyordu.
+      if phase.name == 'Thin Binary'
+        phase.input_paths = []
+        phase.input_file_list_paths = []
+      end
+    end
+  end
+
+  runner_project.save
 end

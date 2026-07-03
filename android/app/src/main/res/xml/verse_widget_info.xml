@@ -10,8 +10,8 @@
   main.dart'taki TODO(widget-refresh)).
 -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="250dp"
-    android:minHeight="80dp"
+    android:minWidth="260dp"
+    android:minHeight="140dp"
     android:updatePeriodMillis="10800000"
     android:initialLayout="@layout/verse_widget"
     android:resizeMode="horizontal|vertical"

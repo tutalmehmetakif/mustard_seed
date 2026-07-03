@@ -1,30 +1,26 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../domain/daily_verse_source.dart';
 import '../../domain/entities/recommended_activity.dart';
+import '../../domain/repositories/verse_repository.dart';
 import '../event/home_event.dart';
 import '../state/home_state.dart';
 
 /// Ana ekranın "Günün Ayeti" ve "Tavsiye Edilenler" içeriğini yönetir.
 ///
-/// Başlangıç ayeti [DailyVerseSource.verseForDate] ile bugünün tarihine
-/// göre seçilir — bu, kilit ekranı/ana ekran widget'ının gösterdiği
-/// ayetle aynıdır (bkz. WidgetService). Kullanıcı "Sonraki" ile listede
-/// gezinebilir, bu widget'ı etkilemez.
+/// Ayet/hadis artık [VerseRepository] üzerinden Supabase'den geliyor —
+/// hem ilk açılışta hem "Sonraki" ile her defasında veritabanına gidip
+/// rastgele bir satır çekiyor.
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
-  HomeBloc()
-      : super(
-          HomeState(
-            verses: DailyVerseSource.verses,
-            recommended: _mockRecommended,
-            currentVerseIndex: DailyVerseSource.verses.indexOf(
-              DailyVerseSource.verseForDate(DateTime.now()),
-            ),
-          ),
-        ) {
-    on<HomeVerseRotateRequested>(_onVerseRotateRequested);
+  HomeBloc({required VerseRepository verseRepository})
+      : _verseRepository = verseRepository,
+        super(const HomeState()) {
+    on<HomeStarted>(_onLoadVerse);
+    on<HomeVerseRotateRequested>(_onLoadVerse);
   }
 
+  final VerseRepository _verseRepository;
+
+  // TODO(icerik): Şu an sabit — ileride Supabase'den dinamik çekilecek.
   static const List<RecommendedActivity> _mockRecommended = [
     RecommendedActivity(
       category: 'Tefekkür',
@@ -44,11 +40,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     ),
   ];
 
-  void _onVerseRotateRequested(
-    HomeVerseRotateRequested event,
-    Emitter<HomeState> emit,
-  ) {
-    final nextIndex = (state.currentVerseIndex + 1) % state.verses.length;
-    emit(state.copyWith(currentVerseIndex: nextIndex));
+  Future<void> _onLoadVerse(HomeEvent event, Emitter<HomeState> emit) async {
+    emit(state.copyWith(status: HomeStatus.loading));
+    try {
+      final verse = await _verseRepository.fetchRandomVerse();
+      emit(state.copyWith(
+        status: HomeStatus.loaded,
+        verse: verse,
+        recommended: _mockRecommended,
+      ));
+    } catch (_) {
+      emit(state.copyWith(status: HomeStatus.failure));
+    }
   }
 }

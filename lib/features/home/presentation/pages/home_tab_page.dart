@@ -7,7 +7,10 @@ import 'package:mustard_seed/features/auth/data/state/auth_state.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/responsive.dart';
+
+import '../../domain/repositories/verse_repository.dart';
 import '../bloc/home_bloc.dart';
+import '../event/home_event.dart';
 import '../state/home_state.dart';
 import '../widgets/quick_nav_card.dart';
 import '../widgets/recommended_card.dart';
@@ -20,7 +23,9 @@ class HomeTabPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => HomeBloc(),
+      create: (context) => HomeBloc(
+        verseRepository: context.read<VerseRepository>(),
+      )..add(const HomeStarted()),
       child: SingleChildScrollView(
         padding: EdgeInsets.symmetric(
           horizontal: context.horizontalMargin,

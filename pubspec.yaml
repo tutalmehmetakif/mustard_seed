@@ -23,6 +23,9 @@ dependencies:
   # Kilit ekranı / ana ekran widget köprüsü
   home_widget: ^0.7.0
 
+  # Widget'a dokununca uygulamayı belirli bir ekrana yönlendirmek için
+  app_links: ^6.3.2
+
   # Tipografi (Inter fontu için — pubspec'e font dosyası eklemeden kullanmayı sağlar)
   google_fonts: ^6.2.1
 

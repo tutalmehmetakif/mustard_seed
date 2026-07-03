@@ -5,6 +5,7 @@ import 'package:mustard_seed/features/auth/domain/presentation/pages/email_auth_
 import '../../features/ask/presentation/pages/ask_page.dart';
 import '../../features/home/presentation/pages/home_shell_page.dart';
 import '../../features/home/presentation/pages/home_tab_page.dart';
+import '../../features/home/presentation/pages/verse_detail_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
@@ -51,6 +52,12 @@ GoRouter buildAppRouter() {
       GoRoute(
         path: '/email-auth',
         builder: (context, state) => const EmailAuthPage(),
+      ),
+      GoRoute(
+        path: '/verse-detail/:id',
+        builder: (context, state) => VerseDetailPage(
+          verseId: state.pathParameters['id']!,
+        ),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

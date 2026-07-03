@@ -1,8 +1,11 @@
-package com.example.mustard_seed
+package com.hardaltanesi.app
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetProvider
 
@@ -10,17 +13,11 @@ import es.antonborri.home_widget.HomeWidgetProvider
  * Ana ekran widget'ı ("Günün Ayeti" kartı).
  *
  * Flutter tarafında [WidgetService] (lib/features/home/data/widget_service.dart)
- * tarafından yazılan verileri (verse_text, verse_reference, hijri_date,
- * moon_phase) okuyup gösterir. `home_widget` paketi bu SharedPreferences
- * köprüsünü otomatik kuruyor, biz sadece [onUpdate] içinde okuyup
- * RemoteViews'a basıyoruz.
- *
- * NOT: `es.antonborri.home_widget` paketi `home_widget` eklentisinin
- * kendi Android tarafıdır — `flutter pub get` sonrası bu import'un
- * çözülmediğini görürsen, `home_widget` paketinin yüklü sürümünde
- * paket adı değişmiş olabilir; o zaman `~/.pub-cache` içindeki
- * `home_widget` Android kaynağına bakıp gerçek paket adını buraya
- * yazman gerekir.
+ * tarafından yazılan verileri (verse_id, verse_text, verse_reference,
+ * hijri_date, moon_phase) okuyup gösterir. Widget'a dokununca uygulamayı
+ * "io.supabase.mustardseed://verse-detail?id=..." linkiyle açar —
+ * main.dart'taki AppLinks dinleyicisi bunu yakalayıp Ayet Açıklaması
+ * ekranına yönlendiriyor.
  */
 class VerseWidgetProvider : HomeWidgetProvider() {
     override fun onUpdate(
@@ -30,6 +27,7 @@ class VerseWidgetProvider : HomeWidgetProvider() {
         widgetData: SharedPreferences,
     ) {
         appWidgetIds.forEach { widgetId ->
+            val verseId = widgetData.getString("verse_id", "")
             val verseText = widgetData.getString(
                 "verse_text",
                 "Bir ayet gününüzü değiştirebilir.",
@@ -43,6 +41,16 @@ class VerseWidgetProvider : HomeWidgetProvider() {
                 setTextViewText(R.id.verse_reference, verseReference)
                 setTextViewText(R.id.hijri_date, hijriDate)
                 setTextViewText(R.id.moon_phase, moonPhase)
+
+                val uri = Uri.parse("io.supabase.mustardseed://verse-detail?id=$verseId")
+                val intent = Intent(Intent.ACTION_VIEW, uri)
+                val pendingIntent = PendingIntent.getActivity(
+                    context,
+                    widgetId,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                )
+                setOnClickPendingIntent(R.id.widget_root, pendingIntent)
             }
 
             appWidgetManager.updateAppWidget(widgetId, views)

@@ -3,27 +3,33 @@ import 'package:equatable/equatable.dart';
 import '../../domain/entities/recommended_activity.dart';
 import '../../domain/entities/verse_of_the_day.dart';
 
+enum HomeStatus { loading, loaded, failure }
+
 class HomeState extends Equatable {
   const HomeState({
-    required this.verses,
-    required this.recommended,
-    this.currentVerseIndex = 0,
+    this.status = HomeStatus.loading,
+    this.verse,
+    this.recommended = const [],
   });
 
-  final List<VerseOfTheDay> verses;
+  final HomeStatus status;
+  final VerseOfTheDay? verse;
   final List<RecommendedActivity> recommended;
-  final int currentVerseIndex;
 
-  VerseOfTheDay get currentVerse => verses[currentVerseIndex];
+  bool get isLoading => status == HomeStatus.loading;
 
-  HomeState copyWith({int? currentVerseIndex}) {
+  HomeState copyWith({
+    HomeStatus? status,
+    VerseOfTheDay? verse,
+    List<RecommendedActivity>? recommended,
+  }) {
     return HomeState(
-      verses: verses,
-      recommended: recommended,
-      currentVerseIndex: currentVerseIndex ?? this.currentVerseIndex,
+      status: status ?? this.status,
+      verse: verse ?? this.verse,
+      recommended: recommended ?? this.recommended,
     );
   }
 
   @override
-  List<Object?> get props => [verses, recommended, currentVerseIndex];
+  List<Object?> get props => [status, verse, recommended];
 }

@@ -7,8 +7,8 @@ import '../bloc/home_bloc.dart';
 import '../event/home_event.dart';
 import '../state/home_state.dart';
 
-/// "Günün Ayeti" kartı — [HomeBloc]'taki güncel ayeti gösterir,
-/// "Sonraki" ile bir sonrakine geçer.
+/// "Günün Ayeti" kartı — Supabase'den gelen güncel ayeti gösterir,
+/// "Sonraki" ile veritabanından yeni bir tane çeker.
 class VerseCard extends StatelessWidget {
   const VerseCard({super.key});
 
@@ -16,7 +16,6 @@ class VerseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
-        final verse = state.currentVerse;
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.all(24),
@@ -51,9 +50,11 @@ class VerseCard extends StatelessWidget {
                     ],
                   ),
                   GestureDetector(
-                    onTap: () => context
-                        .read<HomeBloc>()
-                        .add(const HomeVerseRotateRequested()),
+                    onTap: state.isLoading
+                        ? null
+                        : () => context
+                            .read<HomeBloc>()
+                            .add(const HomeVerseRotateRequested()),
                     child: Row(
                       children: [
                         Text(
@@ -74,21 +75,37 @@ class VerseCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              Text(
-                '"${verse.text}"',
-                style: AppTextStyles.bodyLg(color: AppColors.goldBright)
-                    .copyWith(
-                  fontStyle: FontStyle.italic,
-                  fontWeight: FontWeight.w500,
+              if (state.isLoading)
+                const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.goldBright,
+                  ),
+                )
+              else if (state.status == HomeStatus.failure || state.verse == null)
+                Text(
+                  'Ayet yüklenemedi, tekrar dene.',
+                  style: AppTextStyles.bodyMd(),
+                )
+              else ...[
+                Text(
+                  '"${state.verse!.text}"',
+                  style: AppTextStyles.bodyLg(color: AppColors.goldBright)
+                      .copyWith(
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '— ${verse.reference}',
-                style: AppTextStyles.labelSm(
-                  color: AppColors.textSecondary.withValues(alpha: 0.5),
+                const SizedBox(height: 12),
+                Text(
+                  '— ${state.verse!.reference}',
+                  style: AppTextStyles.labelSm(
+                    color: AppColors.textSecondary.withValues(alpha: 0.5),
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         );
