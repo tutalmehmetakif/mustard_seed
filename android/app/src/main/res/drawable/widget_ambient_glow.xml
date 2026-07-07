@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Kartın sağ üst köşesindeki yumuşak altın parıltı — uygulama içindeki
+  kartlarda kullanılan "ambient background decoration" (bg-brand-gold-bright/10
+  blur) efektinin widget karşılığı. Ana içerik layout'unda arkaplanda
+  konumlandırılır.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <gradient
+        android:type="radial"
+        android:gradientRadius="90dp"
+        android:startColor="#33C9A227"
+        android:endColor="#00C9A227" />
+</shape>

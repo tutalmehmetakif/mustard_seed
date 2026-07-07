@@ -5,7 +5,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mustard_seed/core/di/app_providers.dart';
 import 'package:mustard_seed/features/auth/data/bloc/auth_bloc.dart';
+import 'package:mustard_seed/features/home/data/supabase_recommended_activity_repository.dart';
+import 'package:mustard_seed/features/home/domain/repositories/recommended_activity_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/routing/app_router.dart';
@@ -53,6 +56,8 @@ class _HardalTanesiAppState extends State<HardalTanesiApp>
   // her rebuild'de navigasyon durumu sıfırlanabilir.
   late final GoRouter _router = buildAppRouter();
   late final VerseRepository _verseRepository = SupabaseVerseRepository();
+  late final RecommendedActivityRepository _recommendedActivityRepository =
+    SupabaseRecommendedActivityRepository();
   final AppLinks _appLinks = AppLinks();
   StreamSubscription<Uri>? _linkSubscription;
 
@@ -141,26 +146,24 @@ class _HardalTanesiAppState extends State<HardalTanesiApp>
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return RepositoryProvider<AuthRepository>(
-      create: (_) => SupabaseAuthRepository(),
-      child: RepositoryProvider<VerseRepository>.value(
-        value: _verseRepository,
-        child: BlocProvider<AuthBloc>(
-          create: (context) => AuthBloc(
-            authRepository: context.read<AuthRepository>(),
-          ),
-          child: MaterialApp.router(
-            title: 'Hardal Tanesi',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
-            themeMode: ThemeMode.light, // Karanlık mod şimdilik pasif.
-            routerConfig: _router,
-          ),
-        ),
+ @override
+Widget build(BuildContext context) {
+  return AppProviders(
+    verseRepository: _verseRepository,
+    recommendedActivityRepository: _recommendedActivityRepository,
+    child: BlocProvider<AuthBloc>(
+      create: (context) => AuthBloc(
+        authRepository: context.read<AuthRepository>(),
       ),
-    );
-  }
+      child: MaterialApp.router(
+        title: 'Hardal Tanesi',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: ThemeMode.light, // Karanlık mod şimdilik pasif.
+        routerConfig: _router,
+      ),
+    ),
+  );
+}
 }

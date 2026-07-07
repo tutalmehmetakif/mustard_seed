@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:mustard_seed/features/auth/data/bloc/auth_bloc.dart';
 import 'package:mustard_seed/features/auth/data/state/auth_state.dart';
+import 'package:mustard_seed/features/home/domain/repositories/recommended_activity_repository.dart';
+import 'package:mustard_seed/features/home/presentation/widgets/recommended_activities_list_page.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -12,7 +13,8 @@ import '../../domain/repositories/verse_repository.dart';
 import '../bloc/home_bloc.dart';
 import '../event/home_event.dart';
 import '../state/home_state.dart';
-import '../widgets/quick_nav_card.dart';
+import '../widgets/ask_quran_quick_card.dart';
+import '../widgets/quick_zikir_counter_card.dart';
 import '../widgets/recommended_card.dart';
 import '../widgets/verse_card.dart';
 
@@ -24,8 +26,10 @@ class HomeTabPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => HomeBloc(
-        verseRepository: context.read<VerseRepository>(),
-      )..add(const HomeStarted()),
+  verseRepository: context.read<VerseRepository>(),
+  recommendedActivityRepository:
+      context.read<RecommendedActivityRepository>(),
+)..add(const HomeStarted()),
       child: SingleChildScrollView(
         padding: EdgeInsets.symmetric(
           horizontal: context.horizontalMargin,
@@ -38,39 +42,44 @@ class HomeTabPage extends StatelessWidget {
             const SizedBox(height: 24),
             const VerseCard(),
             const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: QuickNavCard(
-                    title: "Kur'an'a Sor",
-                    subtitle: 'Zihnini meşgul eden konuyu yaz',
-                    icon: Icons.auto_awesome_outlined,
-                    onTap: () => context.go('/ask'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: QuickNavCard(
-                    title: 'Zikir',
-                    subtitle: 'Günlük rutinine devam et',
-                    icon: Icons.circle_outlined,
-                    onTap: () => context.go('/zikir'),
-                  ),
-                ),
-              ],
-            ),
+            const AskQuranQuickCard(),
+            const SizedBox(height: 16),
+            const QuickZikirCounterCard(),
             const SizedBox(height: 28),
-            Text(
-              'TAVSİYE EDİLENLER',
-              style: AppTextStyles.labelSm(
-                color: AppColors.textSecondary.withValues(alpha: 0.5),
+            BlocBuilder<HomeBloc, HomeState>(
+  builder: (context, state) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'TAVSİYE EDİLENLER',
+          style: AppTextStyles.labelSm(
+            color: AppColors.textSecondary.withValues(alpha: 0.5),
+          ),
+        ),
+        GestureDetector(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => RecommendedActivitiesListPage(
+                activities: state.recommended,
               ),
             ),
-            const SizedBox(height: 12),
+          ),
+          child: Text(
+            'Tümünü Gör',
+            style: AppTextStyles.labelSm(color: AppColors.gold)
+                .copyWith(fontWeight: FontWeight.w700),
+          ),
+        ),
+      ],
+    );
+  },
+),
+const SizedBox(height: 12),
             BlocBuilder<HomeBloc, HomeState>(
               builder: (context, state) {
                 return SizedBox(
-                  height: 150,
+                  height: 175,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: state.recommended.length,
@@ -104,9 +113,6 @@ class _Greeting extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
-        // Kullanıcı adı önceliği: profil ismi -> email'in @ öncesi -> "Can".
-        // TODO(profil): Supabase'de bir "profiles" tablosu kurulunca,
-        // kullanıcının kendi belirlediği görünen isim buradan gelecek.
         final displayName = state.user?.displayName?.trim();
         final name = (displayName != null && displayName.isNotEmpty)
             ? displayName
