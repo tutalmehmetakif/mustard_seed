@@ -1,4 +1,7 @@
+// Değişiklik: Zikir branch'ine ShellRoute eklendi — BlocProvider<ZikirBloc>
+// artık burada oluşturuluyor. /zikir/focus alt route'u eklendi.
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mustard_seed/features/auth/domain/presentation/pages/email_auth_page.dart';
 
@@ -9,6 +12,8 @@ import '../../features/home/presentation/pages/verse_detail_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
+import '../../features/zikir/presentation/bloc/zikir_bloc.dart';
+import '../../features/zikir/presentation/pages/zikir_focus_page.dart';
 import '../../features/zikir/presentation/pages/zikir_page.dart';
 
 /// Uygulamanın tüm sayfa/route tanımları burada toplanır.
@@ -59,6 +64,15 @@ GoRouter buildAppRouter() {
           verseId: state.pathParameters['id']!,
         ),
       ),
+      // Odak Modu — StatefulShellRoute DIŞINDA, tam ekran (AppBar/BottomNav yok).
+      // ZikirBloc instance'ı GoRouter'ın extra parametresiyle aktarılır.
+      GoRoute(
+        path: '/zikir/focus',
+        builder: (context, state) => BlocProvider.value(
+          value: state.extra! as ZikirBloc,
+          child: const ZikirFocusPage(),
+        ),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             HomeShellPage(navigationShell: navigationShell),
@@ -79,11 +93,20 @@ GoRouter buildAppRouter() {
               ),
             ],
           ),
+          // Zikir branch'i: ShellRoute ile BlocProvider<ZikirBloc> sarılıyor.
           StatefulShellBranch(
             routes: [
-              GoRoute(
-                path: '/zikir',
-                builder: (context, state) => const ZikirPage(),
+              ShellRoute(
+                builder: (context, state, child) => BlocProvider(
+                  create: (_) => ZikirBloc(),
+                  child: child,
+                ),
+                routes: [
+                  GoRoute(
+                    path: '/zikir',
+                    builder: (context, state) => const ZikirView(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -99,4 +122,4 @@ GoRouter buildAppRouter() {
       ),
     ],
   );
-}
+}
