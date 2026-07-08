@@ -84,39 +84,32 @@ struct VerseWidgetEntryView: View {
     // MARK: - Kilit Ekranı
 
     private var lockScreenLayout: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .top) {
-                HStack(spacing: 3) {
-                    Circle()
-                        .fill(goldAccent)
-                        .frame(width: 3, height: 3)
-                    Text("GÜNÜN AYETİ")
-                        .font(.system(size: 8, weight: .semibold))
-                        .tracking(1)
-                }
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(alignment: .center, spacing: 4) {
+                Circle()
+                    .frame(width: 3, height: 3)
+                    .widgetAccentable()
+                Text(entry.hijriDate)
+                    .font(.system(size: 8, weight: .medium))
                 Spacer()
-                HStack(spacing: 3) {
-                    Text(moonEmoji(for: entry.moonPhase))
-                        .font(.system(size: 11))
-                    VStack(alignment: .trailing, spacing: 0) {
-                        Text(entry.moonPhase.uppercased())
-                            .font(.system(size: 7, weight: .semibold))
-                        Text(entry.hijriDate)
-                            .font(.system(size: 6, weight: .light))
-                    }
-                }
+                Text(moonEmoji(for: entry.moonPhase))
+                    .font(.system(size: 10))
             }
+
             Text("\"\(entry.verseText)\"")
-                .font(.system(size: 12, weight: .medium, design: .serif))
+                .font(.system(size: 13, weight: .medium, design: .serif))
                 .italic()
                 .lineLimit(2)
+                .minimumScaleFactor(0.85)
                 .lineSpacing(1)
+
             HStack(spacing: 4) {
                 Circle()
-                    .fill(goldAccent)
-                    .frame(width: 4, height: 4)
+                    .frame(width: 3, height: 3)
+                    .widgetAccentable()
                 Text(entry.verseReference.uppercased())
                     .font(.system(size: 8, weight: .semibold))
+                    .lineLimit(1)
             }
         }
         .padding(.horizontal, 2)
