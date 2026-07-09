@@ -13,6 +13,7 @@ dependencies:
   # State management
   flutter_bloc: ^8.1.5
   equatable: ^2.0.5
+  shared_preferences: ^2.2.3
 
   # Routing
   go_router: ^14.6.2
@@ -28,6 +29,9 @@ dependencies:
 
   # Tipografi (Inter fontu için — pubspec'e font dosyası eklemeden kullanmayı sağlar)
   google_fonts: ^6.2.1
+
+  # Sesli mod — zikir ifadelerini Arapça sesli okutmak için
+  flutter_tts: ^4.2.0
 
   cupertino_icons: ^1.0.8
 
