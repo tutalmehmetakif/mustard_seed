@@ -101,27 +101,41 @@ const SizedBox(height: 12),
 class _Greeting extends StatelessWidget {
   const _Greeting();
 
-  String _dynamicGreeting(String name) {
+  /// Saatin dilimine göre selamlama kökü döner — isim eklenip
+  /// eklenmeyeceğine karışmaz.
+  String _timeOfDayGreeting() {
     final hour = DateTime.now().hour;
-    if (hour >= 5 && hour < 12) return 'Hayırlı Sabahlar, $name.';
-    if (hour >= 12 && hour < 18) return 'Hayırlı Günler, $name.';
-    if (hour >= 18 && hour < 22) return 'Hayırlı Akşamlar, $name.';
-    return 'Hayırlı Geceler, $name.';
+    if (hour >= 5 && hour < 12) return 'Hayırlı Sabahlar';
+    if (hour >= 12 && hour < 18) return 'Hayırlı Günler';
+    if (hour >= 18 && hour < 22) return 'Hayırlı Akşamlar';
+    return 'Hayırlı Geceler';
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
+        // Gerçek bir isim yoksa (misafir modu ya da henüz profil ismi
+        // girilmemişse) UYDURMA bir isim GÖSTERİLMEZ — selamlama isimsiz,
+        // sade şekilde kalır. "Can" gibi sabit bir fallback kullanmak,
+        // kullanıcıya olmayan bir kişiymiş gibi hitap etmek demektir.
         final displayName = state.user?.displayName?.trim();
-        final name = (displayName != null && displayName.isNotEmpty)
+        final emailPrefix = state.user?.email?.split('@').first.trim();
+
+        final String? name = (displayName != null && displayName.isNotEmpty)
             ? displayName
-            : (state.user?.email?.split('@').first ?? 'Can');
+            : (emailPrefix != null && emailPrefix.isNotEmpty
+                ? emailPrefix
+                : null);
+
+        final greeting = name != null
+            ? '${_timeOfDayGreeting()}, $name.'
+            : '${_timeOfDayGreeting()}.';
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(_dynamicGreeting(name), style: AppTextStyles.headlineLg()),
+            Text(greeting, style: AppTextStyles.headlineLg()),
             const SizedBox(height: 4),
             Text(
               'Bugün ruhunu dinlendirmek için neye ihtiyacın var?',
