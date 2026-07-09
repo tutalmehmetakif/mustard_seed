@@ -1,5 +1,9 @@
-// Değişiklik: Zikir branch'ine ShellRoute eklendi — BlocProvider<ZikirBloc>
-// artık burada oluşturuluyor. /zikir/focus alt route'u eklendi.
+// Değişiklik: ZikirBloc artık StatefulShellRoute'un builder'ında
+// (HomeShellPage'i saran seviyede) oluşturuluyor — böylece hem Ana Sayfa
+// hem Zikir sekmesi AYNI bloc instance'ını paylaşıyor, ikisi arasında
+// tam senkron sağlanıyor. Önceki halinde BlocProvider<ZikirBloc> sadece
+// zikir branch'inin kendi ShellRoute'unda vardı, bu yüzden Ana Sayfa'nın
+// ona erişimi yoktu.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -65,7 +69,8 @@ GoRouter buildAppRouter() {
         ),
       ),
       // Odak Modu — StatefulShellRoute DIŞINDA, tam ekran (AppBar/BottomNav yok).
-      // ZikirBloc instance'ı GoRouter'ın extra parametresiyle aktarılır.
+      // Aynı ZikirBloc instance'ı GoRouter'ın extra parametresiyle aktarılır
+      // (bkz. zikir_view.dart -> context.push('/zikir/focus', extra: ...)).
       GoRoute(
         path: '/zikir/focus',
         builder: (context, state) => BlocProvider.value(
@@ -74,8 +79,14 @@ GoRouter buildAppRouter() {
         ),
       ),
       StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) =>
-            HomeShellPage(navigationShell: navigationShell),
+        // ZikirBloc BURADA oluşturuluyor — HomeShellPage'in tamamını
+        // (yani 4 sekmenin hepsini: Ana Sayfa, Kur'an'a Sor, Zikir, Profil)
+        // sarıyor. Böylece Ana Sayfa'daki QuickZikirCounterCard ile Zikir
+        // sekmesindeki ZikirView aynı bloc'u okur/yazar — tam senkron.
+        builder: (context, state, navigationShell) => BlocProvider(
+          create: (_) => ZikirBloc(),
+          child: HomeShellPage(navigationShell: navigationShell),
+        ),
         branches: [
           StatefulShellBranch(
             routes: [
@@ -93,20 +104,11 @@ GoRouter buildAppRouter() {
               ),
             ],
           ),
-          // Zikir branch'i: ShellRoute ile BlocProvider<ZikirBloc> sarılıyor.
           StatefulShellBranch(
             routes: [
-              ShellRoute(
-                builder: (context, state, child) => BlocProvider(
-                  create: (_) => ZikirBloc(),
-                  child: child,
-                ),
-                routes: [
-                  GoRoute(
-                    path: '/zikir',
-                    builder: (context, state) => const ZikirView(),
-                  ),
-                ],
+              GoRoute(
+                path: '/zikir',
+                builder: (context, state) => const ZikirView(),
               ),
             ],
           ),
@@ -122,4 +124,4 @@ GoRouter buildAppRouter() {
       ),
     ],
   );
-}
+}
