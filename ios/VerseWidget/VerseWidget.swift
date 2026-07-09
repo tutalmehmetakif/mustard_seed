@@ -10,7 +10,8 @@ import WidgetKit
 import SwiftUI
 
 let appGroupId = "group.io.supabase.mustardseed"
-let goldAccent = Color(red: 0.784, green: 0.588, blue: 0.047) // #C8960C
+let goldAccent = Color(red: 0.788, green: 0.635, blue: 0.153) // #C9A227
+let creamText = Color(red: 0.961, green: 0.933, blue: 0.894)  // #F5EEE4
 
 struct VerseEntry: TimelineEntry {
     let date: Date
@@ -80,46 +81,54 @@ struct VerseWidgetEntryView: View {
         }
     }
 
+    // MARK: - Kilit Ekranı
+
     private var lockScreenLayout: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .top) {
-                Text("GÜNÜN AYETİ")
-                    .font(.system(size: 8, weight: .semibold))
-                    .tracking(1)
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(alignment: .center, spacing: 4) {
+                Circle()
+                    .frame(width: 3, height: 3)
+                    .widgetAccentable()
+                Text(entry.hijriDate)
+                    .font(.system(size: 8, weight: .medium))
                 Spacer()
-                HStack(spacing: 3) {
-                    Text(moonEmoji(for: entry.moonPhase))
-                        .font(.system(size: 11))
-                    VStack(alignment: .trailing, spacing: 0) {
-                        Text(entry.moonPhase.uppercased())
-                            .font(.system(size: 7, weight: .semibold))
-                        Text(entry.hijriDate)
-                            .font(.system(size: 6, weight: .light))
-                    }
-                }
+                Text(moonEmoji(for: entry.moonPhase))
+                    .font(.system(size: 10))
             }
+
             Text("\"\(entry.verseText)\"")
-                .font(.system(size: 12, weight: .medium, design: .serif))
+                .font(.system(size: 13, weight: .medium, design: .serif))
                 .italic()
                 .lineLimit(2)
+                .minimumScaleFactor(0.85)
+                .lineSpacing(1)
+
             HStack(spacing: 4) {
                 Circle()
-                    .fill(goldAccent)
-                    .frame(width: 4, height: 4)
+                    .frame(width: 3, height: 3)
+                    .widgetAccentable()
                 Text(entry.verseReference.uppercased())
                     .font(.system(size: 8, weight: .semibold))
+                    .lineLimit(1)
             }
         }
         .padding(.horizontal, 2)
     }
 
+    // MARK: - Ana Ekran
+
     private var homeScreenLayout: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top) {
-                Text("GÜNÜN AYETİ")
-                    .font(.system(size: 9, weight: .semibold))
-                    .tracking(2)
-                    .foregroundColor(.white.opacity(0.7))
+                HStack(spacing: 5) {
+                    Circle()
+                        .fill(goldAccent)
+                        .frame(width: 5, height: 5)
+                    Text("GÜNÜN AYETİ")
+                        .font(.system(size: 9, weight: .semibold))
+                        .tracking(2)
+                        .foregroundColor(creamText.opacity(0.7))
+                }
                 Spacer()
                 HStack(spacing: 5) {
                     Text(moonEmoji(for: entry.moonPhase))
@@ -128,18 +137,28 @@ struct VerseWidgetEntryView: View {
                         Text(entry.moonPhase.uppercased())
                             .font(.system(size: 8, weight: .semibold))
                             .tracking(1.5)
-                            .foregroundColor(.white.opacity(0.85))
+                            .foregroundColor(creamText.opacity(0.85))
                         Text(entry.hijriDate)
                             .font(.system(size: 7, weight: .light))
-                            .foregroundColor(.white.opacity(0.5))
+                            .foregroundColor(creamText.opacity(0.5))
                     }
                 }
             }
+
             Text("\"\(entry.verseText)\"")
                 .font(.system(size: 16, design: .serif))
                 .italic()
-                .foregroundColor(.white)
+                .foregroundColor(creamText)
+                .lineSpacing(3)
                 .lineLimit(3)
+                .padding(.top, 14)
+
+            Rectangle()
+                .fill(goldAccent.opacity(0.12))
+                .frame(height: 1)
+                .padding(.top, 14)
+                .padding(.bottom, 10)
+
             HStack(spacing: 6) {
                 Circle()
                     .fill(goldAccent)
@@ -153,6 +172,34 @@ struct VerseWidgetEntryView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            ZStack {
+                // Sıcak, koyu diyagonal degrade — düz siyah opaklık yerine
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.09, green: 0.07, blue: 0.05),
+                        Color(red: 0.122, green: 0.106, blue: 0.075),
+                        Color(red: 0.07, green: 0.06, blue: 0.04)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+
+                // Sağ üst köşede yumuşak altın parıltı — uygulama kartlarındaki
+                // "ambient background decoration" ile aynı dil
+                GeometryReader { geo in
+                    Circle()
+                        .fill(goldAccent.opacity(0.18))
+                        .frame(width: 90, height: 90)
+                        .blur(radius: 30)
+                        .position(x: geo.size.width - 10, y: 0)
+                }
+            }
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(goldAccent.opacity(0.15), lineWidth: 1)
+        )
     }
 }
 
@@ -162,7 +209,9 @@ struct VerseWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: VerseProvider()) { entry in
             VerseWidgetEntryView(entry: entry)
-                .containerBackground(Color.black.opacity(0.35), for: .widget)
+                .containerBackground(for: .widget) {
+                    Color(red: 0.09, green: 0.07, blue: 0.05)
+                }
                 // Widget'a dokununca uygulamayı "Ayet Açıklaması" ekranına
                 // götüren deep link. main.dart'taki AppLinks dinleyicisi
                 // bunu yakalayıp go_router ile /verse-detail/:id rotasına

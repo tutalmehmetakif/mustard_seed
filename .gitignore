@@ -43,3 +43,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+
+# Ortam degiskenleri (API key'leri icerir, asla commit edilmemeli)
+supabase/scripts/.env
+*.env
+!*.env.example
+
+node_modules/
