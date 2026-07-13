@@ -17,6 +17,7 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Align(
       alignment: _isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: ConstrainedBox(
@@ -26,7 +27,9 @@ class ChatBubble extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: _isUser ? AppColors.gold : AppColors.surface,
+            color: _isUser
+                ? AppColors.gold
+                : (isDarkMode ? AppColors.surfaceDark : AppColors.surface),
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(20),
               topRight: const Radius.circular(20),
@@ -74,6 +77,7 @@ class _AiMessageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final paragraphs = text.split('\n\n').where((p) => p.trim().isNotEmpty);
 
     return Column(
@@ -96,7 +100,7 @@ class _AiMessageContent extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDarkMode ? AppColors.backgroundDark : Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: AppColors.outlineVariant.withValues(alpha: 0.4),
@@ -124,8 +128,10 @@ class _AiMessageContent extends StatelessWidget {
                     Text(
                       reference.toUpperCase(),
                       style: AppTextStyles.labelSm(
-                        color:
-                            AppColors.textSecondary.withValues(alpha: 0.6),
+                        color: (isDarkMode
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondary)
+                            .withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -139,7 +145,9 @@ class _AiMessageContent extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Text(
             trimmed,
-            style: AppTextStyles.bodyMd(color: AppColors.textPrimary),
+            style: AppTextStyles.bodyMd(
+              color: isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary,
+            ),
           ),
         );
       }).toList(),

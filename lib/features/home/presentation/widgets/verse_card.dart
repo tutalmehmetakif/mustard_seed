@@ -16,6 +16,8 @@ class VerseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final mutedColor = isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary;
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
         final canOpenReflection =
@@ -33,7 +35,7 @@ class VerseCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: isDarkMode ? AppColors.surfaceDark : AppColors.surface,
               borderRadius: BorderRadius.circular(24),
             ),
             child: Column(
@@ -56,8 +58,7 @@ class VerseCard extends StatelessWidget {
                         Text(
                           'GÜNÜN AYETİ',
                           style: AppTextStyles.labelSm(
-                            color: AppColors.textSecondary
-                                .withValues(alpha: 0.5),
+                            color: mutedColor.withValues(alpha: 0.5),
                           ),
                         ),
                       ],
@@ -73,15 +74,10 @@ class VerseCard extends StatelessWidget {
                           Text(
                             'Sonraki',
                             style: AppTextStyles.labelSm(
-                              color: AppColors.textSecondary
-                                  .withValues(alpha: 0.6),
+                              color: mutedColor.withValues(alpha: 0.6),
                             ),
                           ),
-                          const Icon(
-                            Icons.chevron_right,
-                            size: 16,
-                            color: AppColors.textSecondary,
-                          ),
+                          Icon(Icons.chevron_right, size: 16, color: mutedColor),
                         ],
                       ),
                     ),
@@ -101,7 +97,7 @@ class VerseCard extends StatelessWidget {
                     state.verse == null)
                   Text(
                     'Ayet yüklenemedi, tekrar dene.',
-                    style: AppTextStyles.bodyMd(),
+                    style: AppTextStyles.bodyMd(color: mutedColor),
                   )
                 else ...[
                   Text(
@@ -116,7 +112,7 @@ class VerseCard extends StatelessWidget {
                   Text(
                     '— ${state.verse!.reference}',
                     style: AppTextStyles.labelSm(
-                      color: AppColors.textSecondary.withValues(alpha: 0.5),
+                      color: mutedColor.withValues(alpha: 0.5),
                     ),
                   ),
                 ],
