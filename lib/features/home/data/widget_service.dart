@@ -1,41 +1,30 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../core/utils/hijri_date.dart';
 import '../../../core/utils/moon_phase.dart';
 import '../domain/repositories/verse_repository.dart';
 
-/// Android ana ekran widget'ına ve iOS kilit ekranı/ana ekran widget'ına
-/// veri gönderen köprü.
-///
-/// `home_widget` paketi, buradan yazılan veriyi native tarafın
-/// okuyabileceği paylaşımlı bir depoya yazar (Android: SharedPreferences,
-/// iOS: App Group UserDefaults). Native widget kodu (Kotlin/Swift) bu
-/// depodaki anahtarları okuyup ekrana basar.
-///
-/// [syncVerse] her çağrıldığında [VerseRepository] üzerinden Supabase'den
-/// RASTGELE bir ayet/hadis çeker — main.dart'ta uygulama her ön plana
-/// geldiğinde (kullanıcı telefonu her açtığında) bu çağrılıyor, böylece
-/// widget da uygulama içi Ana Sayfa da her seferinde farklı içerik
-/// gösterebiliyor.
 class WidgetService {
   WidgetService._();
 
   static const String _androidWidgetProviderName = 'VerseWidgetProvider';
   static const String _iOSWidgetKind = 'VerseWidget';
-
-  /// iOS'ta ana uygulama ile widget extension'ının aynı veriyi
-  /// paylaşabilmesi için Xcode'da her iki hedefte de aktif edilmesi
-  /// gereken App Group kimliği.
   static const String iOSAppGroupId = 'group.io.supabase.mustardseed';
 
-  /// Uygulama açılışında bir kez çağrılmalı (main.dart).
+  /// "Fotoğraflı" widget stilinin arka planında kullanılacak fotoğrafın
+  /// diskteki sabit dosya adı. Her yeni seçimde bu dosyanın üzerine
+  /// yazılır — böylece eski fotoğraflar birikip yer kaplamaz ve widget
+  /// hep aynı yoldan (user_photo_path) okuyabilir.
+  static const String _userPhotoFileName = 'widget_user_photo.jpg';
+
   static Future<void> init() async {
     await HomeWidget.setAppGroupId(iOSAppGroupId);
   }
 
-  /// Rastgele bir ayet/hadis çekip Hicri tarih ve ay evresiyle birlikte
-  /// widget'a yazar, yenilenmesini tetikler.
   static Future<void> syncVerse(VerseRepository verseRepository) async {
     final now = DateTime.now();
     final verse = await verseRepository.fetchRandomVerse();
@@ -70,5 +59,78 @@ class WidgetService {
     );
 
     debugPrint('[WidgetService] updateWidget sonucu: $updateResult');
+  }
+
+  /// Kullanıcının "Fotoğraflı" widget stili için galeriden seçtiği
+  /// fotoğrafı kalıcı bir konuma kopyalar ve widget'ın okuyabileceği
+  /// paylaşımlı depoya (home_widget) yolunu yazar.
+  ///
+  /// [sourcePath], image_picker'ın döndürdüğü geçici dosya yoludur —
+  /// image_picker'ın kendi cache'i sistem tarafından temizlenebildiği
+  /// için, burada uygulamanın kalıcı belgeler klasörüne KOPYALIYORUZ.
+  /// Widget her zaman bu kalıcı kopyayı okur.
+  ///
+  /// Android'de: VerseWidgetProvider.kt, widgetData.getString("user_photo_path")
+  /// ile bu yolu okuyup BitmapFactory.decodeFile() ile yüklüyor.
+  /// iOS'ta: widget extension, App Group container'ı içindeki dosyayı
+  /// aynı isimle okuyor (bkz. loadUserPhoto in VerseWidget.swift).
+  static Future<bool> saveUserPhoto(String sourcePath) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final destinationPath = '${appDir.path}/$_userPhotoFileName';
+
+      final sourceFile = File(sourcePath);
+      await sourceFile.copy(destinationPath);
+
+      final saveResult = await HomeWidget.saveWidgetData<String>(
+        'user_photo_path',
+        destinationPath,
+      );
+
+      debugPrint(
+        '[WidgetService] Fotoğraf kaydedildi -> $destinationPath, '
+        'saveWidgetData sonucu: $saveResult',
+      );
+
+      final updateResult = await HomeWidget.updateWidget(
+        androidName: _androidWidgetProviderName,
+        iOSName: _iOSWidgetKind,
+      );
+
+      debugPrint('[WidgetService] Fotoğraf sonrası updateWidget: $updateResult');
+
+      return saveResult == true;
+    } catch (error) {
+      debugPrint('[WidgetService] Fotoğraf kaydetme HATASI: $error');
+      return false;
+    }
+  }
+
+  /// Kullanıcı widget fotoğrafını kaldırmak isterse (örn. başka bir
+  /// stile geçmeden önce temizlemek için) çağrılabilir.
+  static Future<void> clearUserPhoto() async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final file = File('${appDir.path}/$_userPhotoFileName');
+      if (await file.exists()) {
+        await file.delete();
+      }
+      await HomeWidget.saveWidgetData<String>('user_photo_path', '');
+      await HomeWidget.updateWidget(
+        androidName: _androidWidgetProviderName,
+        iOSName: _iOSWidgetKind,
+      );
+    } catch (error) {
+      debugPrint('[WidgetService] Fotoğraf temizleme HATASI: $error');
+    }
+  }
+
+  /// Şu an kayıtlı widget fotoğrafının yolunu döner (varsa), Profil
+  /// sayfasında önizleme göstermek için kullanılır.
+  static Future<String?> getUserPhotoPath() async {
+    final path = await HomeWidget.getWidgetData<String>('user_photo_path');
+    if (path == null || path.isEmpty) return null;
+    final exists = await File(path).exists();
+    return exists ? path : null;
   }
 }

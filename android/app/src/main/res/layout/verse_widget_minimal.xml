@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/widget_background_flat">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="18dp">
+
+        <TextView
+            android:id="@+id/verse_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="serif"
+            android:text="&#8220;Her zorlukla birlikte bir kolayl\u0131k vard\u0131r.&#8221;"
+            android:textColor="#FFFAF3E8"
+            android:textSize="16sp"
+            android:textStyle="italic"
+            android:lineSpacingExtra="4dp"
+            android:maxLines="4"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/verse_reference"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="\u0130n\u015firah Suresi \u00B7 6. Ayet"
+            android:textColor="#C9A227"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"
+            android:textAllCaps="true" />
+    </LinearLayout>
+</FrameLayout>

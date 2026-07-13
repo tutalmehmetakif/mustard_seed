@@ -42,3 +42,9 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // Widget Configure Activity, AppCompatActivity'den türediği için
+    // (bkz. VerseWidgetConfigureActivity.kt) bu bağımlılık gerekli.
+    implementation("androidx.appcompat:appcompat:1.7.0")
+}
