@@ -173,12 +173,15 @@ class _ZikirViewState extends State<ZikirView> {
       children: [
         Text(
           'GÜNLÜK ZİKİR',
-          style: AppTextStyles.labelSm()
-              .copyWith(letterSpacing: 2, fontSize: 10),
+          style: AppTextStyles.labelSm(
+            color: isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary,
+          ).copyWith(letterSpacing: 2, fontSize: 10),
         ),
         const SizedBox(height: 4),
         Text('Hedef: ${state.aktifSablon.target}',
-            style: AppTextStyles.headlineMd()),
+            style: AppTextStyles.headlineMd(
+              color: isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary,
+            )),
         if (state.tamamlananTurSayisi > 0) ...[
           const SizedBox(height: 4),
           Row(
@@ -205,12 +208,14 @@ class _ZikirViewState extends State<ZikirView> {
               Icon(
                 _modIkonu(state.mod),
                 size: 16,
-                color: AppColors.outline,
+                color: isDarkMode ? AppColors.textSecondaryDark : AppColors.outline,
               ),
               const SizedBox(width: 6),
               Text(
                 _modMetni(state.mod),
-                style: AppTextStyles.labelSm(),
+                style: AppTextStyles.labelSm(
+                  color: isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                ),
               ),
             ],
           ),
@@ -307,7 +312,9 @@ class _ZikirViewState extends State<ZikirView> {
               children: [
                 Text(
                   '${state.sayac}',
-                  style: AppTextStyles.displayHero().copyWith(fontSize: 60),
+                  style: AppTextStyles.displayHero(
+                    color: isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                  ).copyWith(fontSize: 60),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -319,14 +326,18 @@ class _ZikirViewState extends State<ZikirView> {
                 Text(
                   state.aktifSablon.translation,
                   textAlign: TextAlign.center,
-                  style: AppTextStyles.labelSm().copyWith(fontSize: 10),
+                  style: AppTextStyles.labelSm(
+                    color: isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ).copyWith(fontSize: 10),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   state.tamamlandiMi
                       ? 'BAŞA DÖNMEK İÇİN DOKUNUN'
                       : 'DOKUNARAK DEVAM ET',
-                  style: AppTextStyles.labelSm().copyWith(fontSize: 9),
+                  style: AppTextStyles.labelSm(
+                    color: isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ).copyWith(fontSize: 9),
                 ),
               ],
             ),
@@ -343,7 +354,9 @@ class _ZikirViewState extends State<ZikirView> {
     return Column(
       children: [
         Text('ZİKİR SEÇİMİ',
-            style: AppTextStyles.labelSm().copyWith(fontSize: 10)),
+            style: AppTextStyles.labelSm(
+              color: isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            ).copyWith(fontSize: 10)),
         const SizedBox(height: 8),
         SizedBox(
           height: 40,

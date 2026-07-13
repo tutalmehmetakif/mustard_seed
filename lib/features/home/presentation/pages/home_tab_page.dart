@@ -51,11 +51,17 @@ class HomeTabPage extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          'TAVSİYE EDİLENLER',
-          style: AppTextStyles.labelSm(
-            color: AppColors.textSecondary.withValues(alpha: 0.5),
-          ),
+        Builder(
+          builder: (context) {
+            final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+            return Text(
+              'TAVSİYE EDİLENLER',
+              style: AppTextStyles.labelSm(
+                color: (isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary)
+                    .withValues(alpha: 0.5),
+              ),
+            );
+          },
         ),
         GestureDetector(
           onTap: () => Navigator.of(context).push(
@@ -113,6 +119,7 @@ class _Greeting extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         // Gerçek bir isim yoksa (misafir modu ya da henüz profil ismi
@@ -135,11 +142,18 @@ class _Greeting extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(greeting, style: AppTextStyles.headlineLg()),
+            Text(
+              greeting,
+              style: AppTextStyles.headlineLg(
+                color: isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary,
+              ),
+            ),
             const SizedBox(height: 4),
             Text(
               'Bugün ruhunu dinlendirmek için neye ihtiyacın var?',
-              style: AppTextStyles.bodyMd(),
+              style: AppTextStyles.bodyMd(
+                color: isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary,
+              ),
             ),
           ],
         );

@@ -22,6 +22,9 @@ class QuickZikirCounterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedColor = isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary;
     return BlocBuilder<ZikirBloc, ZikirState>(
       builder: (context, state) {
         final template = state.aktifSablon;
@@ -31,7 +34,7 @@ class QuickZikirCounterCard extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: isDarkMode ? AppColors.surfaceDark : AppColors.surface,
             borderRadius: BorderRadius.circular(24),
           ),
           child: Column(
@@ -54,7 +57,7 @@ class QuickZikirCounterCard extends StatelessWidget {
                       Text(
                         'HIZLI ZİKİR SAYACI',
                         style: AppTextStyles.labelSm(
-                          color: AppColors.textSecondary.withValues(alpha: 0.5),
+                          color: mutedColor.withValues(alpha: 0.5),
                         ),
                       ),
                     ],
@@ -79,7 +82,7 @@ class QuickZikirCounterCard extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 template.phrase,
-                style: AppTextStyles.bodyLg(color: AppColors.textPrimary)
+                style: AppTextStyles.bodyLg(color: textColor)
                     .copyWith(fontWeight: FontWeight.w700, fontSize: 18),
               ),
               const SizedBox(height: 16),
@@ -99,8 +102,10 @@ class QuickZikirCounterCard extends StatelessWidget {
                         alignment: Alignment.center,
                         children: [
                           Container(
-                            decoration: const BoxDecoration(
-                              color: AppColors.background,
+                            decoration: BoxDecoration(
+                              color: isDarkMode
+                                  ? AppColors.backgroundDark
+                                  : AppColors.background,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -143,8 +148,7 @@ class QuickZikirCounterCard extends StatelessWidget {
                               child: Text(
                                 '/ ${template.target}',
                                 style: AppTextStyles.labelSm(
-                                  color: AppColors.textSecondary
-                                      .withValues(alpha: 0.5),
+                                  color: mutedColor.withValues(alpha: 0.5),
                                 ),
                               ),
                             ),
@@ -169,7 +173,7 @@ class QuickZikirCounterCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.labelSm(
-                            color: AppColors.textSecondary.withValues(alpha: 0.5),
+                            color: mutedColor.withValues(alpha: 0.5),
                           ).copyWith(fontWeight: FontWeight.w400),
                         ),
                       ],
@@ -193,7 +197,7 @@ class QuickZikirCounterCard extends StatelessWidget {
                     Text(
                       'Sıfırlamak veya değiştirmek için',
                       style: AppTextStyles.labelSm(
-                        color: AppColors.textSecondary.withValues(alpha: 0.5),
+                        color: mutedColor.withValues(alpha: 0.5),
                       ).copyWith(fontWeight: FontWeight.w400),
                     ),
                     GestureDetector(

@@ -19,6 +19,9 @@ class RecommendedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedColor = isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary;
     return GestureDetector(
       onTap: () => showReadingDetailDialog(context, activity: activity),
       child: Container(
@@ -26,7 +29,7 @@ class RecommendedCard extends StatelessWidget {
         margin: const EdgeInsets.only(right: 12),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: isDarkMode ? AppColors.surfaceDark : AppColors.surface,
           borderRadius: BorderRadius.circular(24),
         ),
         // mainAxisSize.min: kart, dıştan gelen yüksekliği zorlamaz,
@@ -44,7 +47,7 @@ class RecommendedCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.labelSm(
-                      color: AppColors.textSecondary.withValues(alpha: 0.5),
+                      color: mutedColor.withValues(alpha: 0.5),
                     ),
                   ),
                 ),
@@ -52,7 +55,7 @@ class RecommendedCard extends StatelessWidget {
                 Text(
                   activity.readTime,
                   style: AppTextStyles.labelSm(
-                    color: AppColors.textSecondary.withValues(alpha: 0.5),
+                    color: mutedColor.withValues(alpha: 0.5),
                   ),
                 ),
               ],
@@ -62,7 +65,7 @@ class RecommendedCard extends StatelessWidget {
               activity.title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.bodyMd(color: AppColors.textPrimary)
+              style: AppTextStyles.bodyMd(color: textColor)
                   .copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 6),
@@ -72,7 +75,7 @@ class RecommendedCard extends StatelessWidget {
               child: Text(
                 activity.description,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bodyMd(),
+                style: AppTextStyles.bodyMd(color: mutedColor),
               ),
             ),
           ],

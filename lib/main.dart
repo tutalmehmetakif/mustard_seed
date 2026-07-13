@@ -13,6 +13,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/cubit/theme_cubit.dart';
 import 'features/auth/data/repositories/supabase_auth_repository.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
 import 'features/home/data/supabase_verse_repository.dart';
@@ -151,17 +152,28 @@ Widget build(BuildContext context) {
   return AppProviders(
     verseRepository: _verseRepository,
     recommendedActivityRepository: _recommendedActivityRepository,
-    child: BlocProvider<AuthBloc>(
-      create: (context) => AuthBloc(
-        authRepository: context.read<AuthRepository>(),
-      ),
-      child: MaterialApp.router(
-        title: 'Hardal Tanesi',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        darkTheme: AppTheme.dark,
-        themeMode: ThemeMode.light, // Karanlık mod şimdilik pasif.
-        routerConfig: _router,
+    child: MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>(
+          create: (context) => AuthBloc(
+            authRepository: context.read<AuthRepository>(),
+          ),
+        ),
+        // Karanlık mod anahtarı artık kök seviyede sağlanıyor ki
+        // MaterialApp.themeMode'a bağlanabilsin (bkz. ThemeCubit yorumu).
+        BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()),
+      ],
+      child: BlocBuilder<ThemeCubit, bool>(
+        builder: (context, isDarkMode) {
+          return MaterialApp.router(
+            title: 'Hardal Tanesi',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            routerConfig: _router,
+          );
+        },
       ),
     ),
   );
