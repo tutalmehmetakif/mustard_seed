@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -14,12 +16,14 @@ class WidgetService {
   static const String _androidWidgetProviderName = 'VerseWidgetProvider';
   static const String _iOSWidgetKind = 'VerseWidget';
   static const String iOSAppGroupId = 'group.io.supabase.mustardseed';
-
-  /// "Fotoğraflı" widget stilinin arka planında kullanılacak fotoğrafın
-  /// diskteki sabit dosya adı. Her yeni seçimde bu dosyanın üzerine
-  /// yazılır — böylece eski fotoğraflar birikip yer kaplamaz ve widget
-  /// hep aynı yoldan (user_photo_path) okuyabilir.
   static const String _userPhotoFileName = 'widget_user_photo.jpg';
+
+  /// iOS tarafında App Group container'ına dosya yazmak için
+  /// AppDelegate.swift'teki native köprü. Android'de widget aynı process
+  /// içinde çalıştığı için buna gerek yok — Android orada doğrudan
+  /// path_provider ile dosya sistemi kullanıyor.
+  static const MethodChannel _iOSPhotoChannel =
+      MethodChannel('com.hardaltanesi.app/widget_photo');
 
   static Future<void> init() async {
     await HomeWidget.setAppGroupId(iOSAppGroupId);
@@ -62,20 +66,37 @@ class WidgetService {
   }
 
   /// Kullanıcının "Fotoğraflı" widget stili için galeriden seçtiği
-  /// fotoğrafı kalıcı bir konuma kopyalar ve widget'ın okuyabileceği
-  /// paylaşımlı depoya (home_widget) yolunu yazar.
+  /// fotoğrafı kalıcı bir konuma kaydeder.
   ///
-  /// [sourcePath], image_picker'ın döndürdüğü geçici dosya yoludur —
-  /// image_picker'ın kendi cache'i sistem tarafından temizlenebildiği
-  /// için, burada uygulamanın kalıcı belgeler klasörüne KOPYALIYORUZ.
-  /// Widget her zaman bu kalıcı kopyayı okur.
+  /// Android: uygulamanın kalıcı belgeler klasörüne kopyalanır, yolu
+  /// home_widget'ın paylaşımlı deposuna (user_photo_path) yazılır —
+  /// widget aynı process içinde çalıştığı için bu dosyaya erişebilir.
   ///
-  /// Android'de: VerseWidgetProvider.kt, widgetData.getString("user_photo_path")
-  /// ile bu yolu okuyup BitmapFactory.decodeFile() ile yüklüyor.
-  /// iOS'ta: widget extension, App Group container'ı içindeki dosyayı
-  /// aynı isimle okuyor (bkz. loadUserPhoto in VerseWidget.swift).
+  /// iOS: widget extension AYRI bir process'te çalıştığı ve ana
+  /// uygulamanın Documents klasörüne erişemediği için, bayt verisi
+  /// native MethodChannel üzerinden doğrudan App Group container'ına
+  /// yazılır (bkz. AppDelegate.swift).
   static Future<bool> saveUserPhoto(String sourcePath) async {
     try {
+      if (Platform.isIOS) {
+        final bytes = await File(sourcePath).readAsBytes();
+        final success = await _iOSPhotoChannel.invokeMethod<bool>(
+          'savePhoto',
+          {'bytes': Uint8List.fromList(bytes)},
+        );
+        debugPrint('[WidgetService] iOS fotoğraf kaydı sonucu: $success');
+
+        if (success == true) {
+          final updateResult = await HomeWidget.updateWidget(
+            androidName: _androidWidgetProviderName,
+            iOSName: _iOSWidgetKind,
+          );
+          debugPrint('[WidgetService] Fotoğraf sonrası updateWidget: $updateResult');
+        }
+        return success ?? false;
+      }
+
+      // Android yolu — değişmedi.
       final appDir = await getApplicationDocumentsDirectory();
       final destinationPath = '${appDir.path}/$_userPhotoFileName';
 
@@ -106,16 +127,19 @@ class WidgetService {
     }
   }
 
-  /// Kullanıcı widget fotoğrafını kaldırmak isterse (örn. başka bir
-  /// stile geçmeden önce temizlemek için) çağrılabilir.
   static Future<void> clearUserPhoto() async {
     try {
-      final appDir = await getApplicationDocumentsDirectory();
-      final file = File('${appDir.path}/$_userPhotoFileName');
-      if (await file.exists()) {
-        await file.delete();
+      if (Platform.isIOS) {
+        await _iOSPhotoChannel.invokeMethod<bool>('clearPhoto');
+      } else {
+        final appDir = await getApplicationDocumentsDirectory();
+        final file = File('${appDir.path}/$_userPhotoFileName');
+        if (await file.exists()) {
+          await file.delete();
+        }
+        await HomeWidget.saveWidgetData<String>('user_photo_path', '');
       }
-      await HomeWidget.saveWidgetData<String>('user_photo_path', '');
+
       await HomeWidget.updateWidget(
         androidName: _androidWidgetProviderName,
         iOSName: _iOSWidgetKind,
@@ -125,9 +149,24 @@ class WidgetService {
     }
   }
 
-  /// Şu an kayıtlı widget fotoğrafının yolunu döner (varsa), Profil
-  /// sayfasında önizleme göstermek için kullanılır.
+  /// Şu an kayıtlı widget fotoğrafının yolunu döner (varsa) — Android'de
+  /// gerçek dosya yolu, iOS'ta ise sadece "var/yok" bilgisini taşıyan
+  /// sabit bir gösterge döner (App Group içindeki dosyaya Flutter
+  /// tarafından doğrudan Image.file ile erişilemez, o yüzden burada UI
+  /// önizlemesi için iOS'ta ayrı bir çözüm gerekir — bkz. not aşağıda).
   static Future<String?> getUserPhotoPath() async {
+    if (Platform.isIOS) {
+      // NOT: iOS'ta App Group container yolu Flutter tarafından normal
+      // Image.file ile okunabilir çünkü aynı cihazdaki bir dosya sistemi
+      // yolu — sandboxing sadece OTOMATİK klasörler (Documents vb.) için
+      // geçerli, App Group container'ı paylaşılan bir yol olduğu için
+      // Flutter (ana uygulama süreci) bu dosyayı okuyabilir. Container
+      // yolunu native taraftan almak gerekir; basitlik için burada şimdilik
+      // "var mı yok mu" bilgisini home_widget üzerinden ayrıca saklıyoruz.
+      final hasPhoto = await HomeWidget.getWidgetData<String>('ios_has_user_photo');
+      return (hasPhoto == 'true') ? 'ios_photo_placeholder' : null;
+    }
+
     final path = await HomeWidget.getWidgetData<String>('user_photo_path');
     if (path == null || path.isEmpty) return null;
     final exists = await File(path).exists();
