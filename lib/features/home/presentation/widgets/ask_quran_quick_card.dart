@@ -33,11 +33,14 @@ class _AskQuranQuickCardState extends State<AskQuranQuickCard> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedColor = isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: isDarkMode ? AppColors.surfaceDark : AppColors.surface,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -64,8 +67,7 @@ class _AskQuranQuickCardState extends State<AskQuranQuickCard> {
                         Text(
                           'HUZURA AÇILAN KAPI',
                           style: AppTextStyles.labelSm(
-                            color: AppColors.textSecondary
-                                .withValues(alpha: 0.5),
+                            color: mutedColor.withValues(alpha: 0.5),
                           ),
                         ),
                       ],
@@ -73,7 +75,7 @@ class _AskQuranQuickCardState extends State<AskQuranQuickCard> {
                     const SizedBox(height: 6),
                     Text(
                       "Kur'an'a Sor",
-                      style: AppTextStyles.bodyLg(color: AppColors.textPrimary)
+                      style: AppTextStyles.bodyLg(color: textColor)
                           .copyWith(fontWeight: FontWeight.w700, fontSize: 18),
                     ),
                   ],
@@ -98,15 +100,14 @@ class _AskQuranQuickCardState extends State<AskQuranQuickCard> {
           TextField(
             controller: _controller,
             onSubmitted: (_) => _handleSubmit(),
-            style: AppTextStyles.bodyMd(color: AppColors.textPrimary)
-                .copyWith(fontSize: 13),
+            style: AppTextStyles.bodyMd(color: textColor).copyWith(fontSize: 13),
             decoration: InputDecoration(
               hintText: 'Zihnini meşgul eden konuyu buraya fısılda...',
               hintStyle: AppTextStyles.bodyMd(
-                color: AppColors.textSecondary.withValues(alpha: 0.5),
+                color: mutedColor.withValues(alpha: 0.5),
               ).copyWith(fontSize: 13),
               filled: true,
-              fillColor: AppColors.background,
+              fillColor: isDarkMode ? AppColors.backgroundDark : AppColors.background,
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
               border: OutlineInputBorder(
@@ -136,7 +137,7 @@ class _AskQuranQuickCardState extends State<AskQuranQuickCard> {
             '*Örn: "Kararsız kaldığımda ne yapmalıyım?", '
             '"Ruhumu nasıl sakinleştiririm?"',
             style: AppTextStyles.labelSm(
-              color: AppColors.textSecondary.withValues(alpha: 0.5),
+              color: mutedColor.withValues(alpha: 0.5),
             ).copyWith(fontWeight: FontWeight.w400, fontStyle: FontStyle.italic),
           ),
         ],

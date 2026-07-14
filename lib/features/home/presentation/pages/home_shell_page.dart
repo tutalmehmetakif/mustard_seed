@@ -21,12 +21,14 @@ class HomeShellPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: _buildAppBar(context),
+      backgroundColor: isDarkMode ? AppColors.backgroundDark : AppColors.background,
+      appBar: _buildAppBar(context, isDarkMode),
       body: navigationShell,
       bottomNavigationBar: _BottomNavBar(
         currentIndex: navigationShell.currentIndex,
+        isDarkMode: isDarkMode,
         onTap: (index) => navigationShell.goBranch(
           index,
           // Zaten seçili sekmeye tekrar basılırsa, o sekmenin kendi
@@ -38,13 +40,18 @@ class HomeShellPage extends StatelessWidget {
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
+  PreferredSizeWidget _buildAppBar(BuildContext context, bool isDarkMode) {
     return AppBar(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDarkMode ? AppColors.backgroundDark : AppColors.background,
       elevation: 0,
       scrolledUnderElevation: 0,
       titleSpacing: 20,
-      title: Text('Hardal Tanesi', style: AppTextStyles.headlineMd()),
+      title: Text(
+        'Hardal Tanesi',
+        style: AppTextStyles.headlineMd(
+          color: isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary,
+        ),
+      ),
       actions: [
         // TODO(premium): Premium rozeti/butonu buraya eklenecek
         // (premium akışı kurulunca — bkz. ürün dokümanındaki Aşama 4).
@@ -82,22 +89,32 @@ class HomeShellPage extends StatelessWidget {
 }
 
 class _BottomNavBar extends StatelessWidget {
-  const _BottomNavBar({required this.currentIndex, required this.onTap});
+  const _BottomNavBar({
+    required this.currentIndex,
+    required this.onTap,
+    required this.isDarkMode,
+  });
 
   final int currentIndex;
   final ValueChanged<int> onTap;
+  final bool isDarkMode;
 
   @override
   Widget build(BuildContext context) {
+    final unselectedColor = isDarkMode
+        ? AppColors.textSecondaryDark.withValues(alpha: 0.5)
+        : AppColors.textSecondary.withValues(alpha: 0.4);
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: onTap,
       type: BottomNavigationBarType.fixed,
-      backgroundColor: Colors.white,
-      selectedItemColor: AppColors.gold,
-      unselectedItemColor: AppColors.textSecondary.withValues(alpha: 0.4),
-      selectedLabelStyle: AppTextStyles.labelSm(),
-      unselectedLabelStyle: AppTextStyles.labelSm(),
+      backgroundColor: isDarkMode ? AppColors.surfaceDark : Colors.white,
+      selectedItemColor: isDarkMode ? AppColors.goldBright : AppColors.gold,
+      unselectedItemColor: unselectedColor,
+      selectedLabelStyle: AppTextStyles.labelSm(
+        color: isDarkMode ? AppColors.goldBright : AppColors.gold,
+      ),
+      unselectedLabelStyle: AppTextStyles.labelSm(color: unselectedColor),
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home_outlined),

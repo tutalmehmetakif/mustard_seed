@@ -69,8 +69,9 @@ class _AskViewState extends State<_AskView> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: AppColors.background,
+      color: isDarkMode ? AppColors.backgroundDark : AppColors.background,
       child: BlocConsumer<AskBloc, AskState>(
         listenWhen: (previous, current) =>
             previous.messages.length != current.messages.length,
@@ -113,7 +114,8 @@ class _AskViewState extends State<_AskView> {
                   'Yapay zeka yanıtları hata içerebilir. Lütfen teyit ediniz.',
                   textAlign: TextAlign.center,
                   style: AppTextStyles.labelSm(
-                    color: AppColors.textSecondary.withValues(alpha: 0.4),
+                    color: (isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary)
+                        .withValues(alpha: 0.4),
                   ),
                 ),
               ),
@@ -136,6 +138,7 @@ class _WelcomeBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(top: 16, bottom: 24),
       child: Column(
@@ -154,13 +157,20 @@ class _WelcomeBanner extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Text("Kur'an'a Sor", style: AppTextStyles.headlineMd()),
+          Text(
+            "Kur'an'a Sor",
+            style: AppTextStyles.headlineMd(
+              color: isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
             'Zihninizi meşgul eden meseleleri fısıldayın; ayetlerin '
             'sükûnet veren hikmetlerini keşfedin.',
             textAlign: TextAlign.center,
-            style: AppTextStyles.bodyMd(),
+            style: AppTextStyles.bodyMd(
+              color: isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            ),
           ),
         ],
       ),
@@ -173,12 +183,13 @@ class _LoadingBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: isDarkMode ? AppColors.surfaceDark : AppColors.surface,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
@@ -196,7 +207,8 @@ class _LoadingBubble extends StatelessWidget {
             Text(
               'Ayetlerden şifa aranıyor...',
               style: AppTextStyles.labelSm(
-                color: AppColors.textSecondary.withValues(alpha: 0.7),
+                color: (isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary)
+                    .withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -251,6 +263,7 @@ class _LimitReachedBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),
@@ -266,8 +279,9 @@ class _LimitReachedBanner extends StatelessWidget {
           Text(
             'Günlük ücretsiz soru hakkını kullandın.',
             textAlign: TextAlign.center,
-            style: AppTextStyles.bodyMd(color: AppColors.textPrimary)
-                .copyWith(fontWeight: FontWeight.w600),
+            style: AppTextStyles.bodyMd(
+              color: isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary,
+            ).copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
           Text(
@@ -276,7 +290,8 @@ class _LimitReachedBanner extends StatelessWidget {
             'Sınırsız soru için Premium\'a geçmen gerekiyor (yakında).',
             textAlign: TextAlign.center,
             style: AppTextStyles.labelSm(
-              color: AppColors.textSecondary.withValues(alpha: 0.7),
+              color: (isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary)
+                  .withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -293,6 +308,7 @@ class _SuggestionChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(top: 16),
       child: Column(
@@ -300,7 +316,8 @@ class _SuggestionChips extends StatelessWidget {
           Text(
             'ÖNERİLEN KONULAR',
             style: AppTextStyles.labelSm(
-              color: AppColors.textSecondary.withValues(alpha: 0.4),
+              color: (isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary)
+                  .withValues(alpha: 0.4),
             ),
           ),
           const SizedBox(height: 12),
@@ -317,13 +334,13 @@ class _SuggestionChips extends StatelessWidget {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: isDarkMode ? AppColors.surfaceDark : AppColors.surface,
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
                     s,
                     style: AppTextStyles.labelSm(
-                      color: AppColors.textPrimary,
+                      color: isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -349,6 +366,8 @@ class _InputBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final mutedColor = isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondary;
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: context.horizontalMargin,
@@ -357,7 +376,7 @@ class _InputBar extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: isDarkMode ? AppColors.surfaceDark : AppColors.surface,
           borderRadius: BorderRadius.circular(999),
         ),
         child: Row(
@@ -366,10 +385,7 @@ class _InputBar extends StatelessWidget {
               onPressed: enabled
                   ? () => onSubmit('Sükunet ve sabır duası')
                   : null,
-              icon: const Icon(
-                Icons.mic_none_outlined,
-                color: AppColors.textSecondary,
-              ),
+              icon: Icon(Icons.mic_none_outlined, color: mutedColor),
               tooltip: 'Sabır duası iste',
             ),
             Expanded(
@@ -378,12 +394,12 @@ class _InputBar extends StatelessWidget {
                 enabled: enabled,
                 textInputAction: TextInputAction.send,
                 onSubmitted: onSubmit,
-                style: AppTextStyles.bodyMd(color: AppColors.textPrimary),
+                style: AppTextStyles.bodyMd(
+                  color: isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                ),
                 decoration: InputDecoration(
                   hintText: 'Bir soru sor...',
-                  hintStyle: AppTextStyles.bodyMd(
-                    color: AppColors.textSecondary.withValues(alpha: 0.5),
-                  ),
+                  hintStyle: AppTextStyles.bodyMd(color: mutedColor.withValues(alpha: 0.5)),
                   border: InputBorder.none,
                 ),
               ),
@@ -393,9 +409,7 @@ class _InputBar extends StatelessWidget {
               builder: (context, value, _) {
                 final canSend = enabled && value.text.trim().isNotEmpty;
                 return Material(
-                  color: canSend
-                      ? AppColors.gold
-                      : AppColors.textSecondary.withValues(alpha: 0.15),
+                  color: canSend ? AppColors.gold : mutedColor.withValues(alpha: 0.15),
                   shape: const CircleBorder(),
                   child: InkWell(
                     customBorder: const CircleBorder(),
