@@ -7,11 +7,14 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../home/data/widget_service.dart';
 
-/// Profil sayfasına eklenecek "Widget Fotoğrafı" ayar bölümü.
-/// Kullanıcı galeriden bir fotoğraf seçtiğinde, "Fotoğraflı" widget
-/// stilinin arka planı olarak kaydedilir (bkz. WidgetService.saveUserPhoto).
+/// Profil sayfasındaki "Widget Fotoğrafı" ayar bölümü.
+/// Kullanıcı galeriden bir fotoğraf seçtiğinde, ana ekran widget'ının
+/// "Fotoğraflı" stilinin arka planı olarak kaydedilir (bkz.
+/// WidgetService.saveUserPhoto).
 class WidgetPhotoSettingTile extends StatefulWidget {
-  const WidgetPhotoSettingTile({super.key});
+  const WidgetPhotoSettingTile({super.key, required this.isDarkMode});
+
+  final bool isDarkMode;
 
   @override
   State<WidgetPhotoSettingTile> createState() =>
@@ -75,27 +78,40 @@ class _WidgetPhotoSettingTileState extends State<WidgetPhotoSettingTile> {
 
   @override
   Widget build(BuildContext context) {
+    final surfaceColor =
+        widget.isDarkMode ? AppColors.surfaceDark : AppColors.surface;
+    final backgroundColor =
+        widget.isDarkMode ? AppColors.backgroundDark : AppColors.background;
+    final textColor =
+        widget.isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedColor = widget.isDarkMode
+        ? AppColors.textSecondaryDark
+        : AppColors.textSecondary;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: surfaceColor,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: widget.isDarkMode
+              ? AppColors.textSecondaryDark.withValues(alpha: 0.15)
+              : AppColors.outlineVariant.withValues(alpha: 0.4),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'WIDGET FOTOĞRAFI',
-            style: AppTextStyles.labelSm(
-              color: AppColors.textSecondary.withValues(alpha: 0.5),
-            ),
+            style: AppTextStyles.labelSm(color: mutedColor),
           ),
           const SizedBox(height: 4),
           Text(
             'Ana ekran widget\'ında "Fotoğraflı" stili seçtiğinde '
             'arka planda görünecek fotoğraf.',
-            style: AppTextStyles.bodyMd(),
+            style: AppTextStyles.bodyMd(color: mutedColor),
           ),
           const SizedBox(height: 16),
           Row(
@@ -112,10 +128,10 @@ class _WidgetPhotoSettingTileState extends State<WidgetPhotoSettingTile> {
                     : Container(
                         width: 64,
                         height: 64,
-                        color: AppColors.background,
-                        child: const Icon(
+                        color: backgroundColor,
+                        child: Icon(
                           Icons.image_outlined,
-                          color: AppColors.textSecondary,
+                          color: mutedColor,
                         ),
                       ),
               ),
@@ -157,17 +173,18 @@ class _WidgetPhotoSettingTileState extends State<WidgetPhotoSettingTile> {
                     ),
                     if (_photoPath != null) ...[
                       const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: _isLoading ? null : _removePhoto,
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(0, 0),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          'Fotoğrafı Kaldır',
-                          style: AppTextStyles.labelSm(
-                            color: AppColors.textSecondary,
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: TextButton(
+                          onPressed: _isLoading ? null : _removePhoto,
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            'Fotoğrafı Kaldır',
+                            style: AppTextStyles.labelSm(color: mutedColor),
                           ),
                         ),
                       ),

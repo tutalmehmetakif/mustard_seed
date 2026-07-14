@@ -91,6 +91,7 @@ class WidgetService {
             androidName: _androidWidgetProviderName,
             iOSName: _iOSWidgetKind,
           );
+          await HomeWidget.saveWidgetData<String>('ios_has_user_photo', 'true');
           debugPrint('[WidgetService] Fotoğraf sonrası updateWidget: $updateResult');
         }
         return success ?? false;
@@ -138,6 +139,7 @@ class WidgetService {
           await file.delete();
         }
         await HomeWidget.saveWidgetData<String>('user_photo_path', '');
+        await HomeWidget.saveWidgetData<String>('ios_has_user_photo', 'false');
       }
 
       await HomeWidget.updateWidget(

@@ -224,45 +224,48 @@ struct VerseWidgetEntryView: View {
     }
 
     private var photoLayout: some View {
-        ZStack {
-            if let uiImage = loadUserPhoto() {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } else {
-                Image(defaultBackgroundImageName())
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
+    GeometryReader { geo in
+        ZStack(alignment: .bottomLeading) {
+            Group {
+                if let uiImage = loadUserPhoto() {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                } else {
+                    Image(defaultBackgroundImageName())
+                        .resizable()
+                }
             }
+            .aspectRatio(contentMode: .fill)
+            .frame(width: geo.size.width, height: geo.size.height)
+            .clipped()
 
             LinearGradient(
-                colors: [Color.black.opacity(0.75), Color.black.opacity(0.15)],
+                colors: [Color.black.opacity(0.85), Color.black.opacity(0.0)],
                 startPoint: .bottom, endPoint: .top
             )
+            .frame(width: geo.size.width, height: geo.size.height)
 
-            VStack {
-                Spacer()
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("\"\(entry.verseText)\"")
-                        .font(.system(size: 15, design: .serif))
-                        .italic()
-                        .foregroundColor(.white)
-                        .lineLimit(3)
-                        .shadow(color: .black.opacity(0.5), radius: 4)
-                    HStack(spacing: 5) {
-                        Circle().fill(goldAccent).frame(width: 4, height: 4)
-                        Text(entry.verseReference.uppercased())
-                            .font(.system(size: 8, weight: .semibold))
-                            .tracking(1.2)
-                            .foregroundColor(goldAccent)
-                    }
+            VStack(alignment: .leading, spacing: 6) {
+                Text("\"\(entry.verseText)\"")
+                    .font(.system(size: 14, design: .serif))
+                    .italic()
+                    .foregroundColor(.white)
+                    .lineLimit(3)
+                    .shadow(color: .black.opacity(0.6), radius: 3)
+                HStack(spacing: 5) {
+                    Circle().fill(goldAccent).frame(width: 4, height: 4)
+                    Text(entry.verseReference.uppercased())
+                        .font(.system(size: 8, weight: .semibold))
+                        .tracking(1.2)
+                        .foregroundColor(goldAccent)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(16)
             }
+            .padding(14)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .frame(width: geo.size.width, height: geo.size.height)
+        .clipped()
     }
+}
 }
 
 struct VerseWidget: Widget {
@@ -285,5 +288,10 @@ struct VerseWidget: Widget {
         .configurationDisplayName("Hardal Tanesi")
         .description("Günün ayetini kilit ekranında ya da ana ekranında gör.")
         .supportedFamilies([.accessoryRectangular, .systemSmall, .systemMedium])
+        // iOS 17+ widget'lara otomatik uygulanan iç kenar boşluğunu kapatır.
+        // Bu olmadan görsellerimiz/gradyanımız widget'ın kenarına tam
+        // oturamıyor, her tarafta boşluk kalıyordu (Android'de bu sorun
+        // yoktu çünkü Android'in böyle bir otomatik margin sistemi yok).
+        .contentMarginsDisabled()
     }
 }

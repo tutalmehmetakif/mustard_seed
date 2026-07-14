@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -11,6 +11,7 @@
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
+		7DD677763004E56C0094DAC0 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DD677753004E56C0094DAC0 /* AppIntents.framework */; };
 		7DFC91B12FF792F000F04DF5 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DFC91B02FF792EF00F04DF5 /* WidgetKit.framework */; };
 		7DFC91B32FF792F000F04DF5 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DFC91B22FF792F000F04DF5 /* SwiftUI.framework */; };
 		7DFC91BE2FF792F000F04DF5 /* VerseWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7DFC91AF2FF792EF00F04DF5 /* VerseWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -77,6 +78,7 @@
 		7DD675E22FF798070094DAC0 /* VerseWidgetExtensionRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = VerseWidgetExtensionRelease.entitlements; sourceTree = "<group>"; };
 		7DD677032FF7E9C70094DAC0 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		7DD677042FF7E9FA0094DAC0 /* VerseWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = VerseWidgetExtension.entitlements; sourceTree = "<group>"; };
+		7DD677753004E56C0094DAC0 /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
 		7DFC91AF2FF792EF00F04DF5 /* VerseWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = VerseWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7DFC91B02FF792EF00F04DF5 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		7DFC91B22FF792F000F04DF5 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -96,7 +98,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		7DFC91C32FF792F000F04DF5 /* Exceptions for "VerseWidget" folder in "VerseWidgetExtension" target */ = {
+		7DFC91C32FF792F000F04DF5 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -106,18 +108,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		7DFC91B42FF792F000F04DF5 /* VerseWidget */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				7DFC91C32FF792F000F04DF5 /* Exceptions for "VerseWidget" folder in "VerseWidgetExtension" target */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = VerseWidget;
-			sourceTree = "<group>";
-		};
+		7DFC91B42FF792F000F04DF5 /* VerseWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (7DFC91C32FF792F000F04DF5 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = VerseWidget; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -127,6 +118,7 @@
 			files = (
 				7DFC91B32FF792F000F04DF5 /* SwiftUI.framework in Frameworks */,
 				7DFC91B12FF792F000F04DF5 /* WidgetKit.framework in Frameworks */,
+				7DD677763004E56C0094DAC0 /* AppIntents.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -160,6 +152,7 @@
 		47E8780B7AE6732907C33A06 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				7DD677753004E56C0094DAC0 /* AppIntents.framework */,
 				CE2893CCC2B4A559E24799C3 /* Pods_Runner.framework */,
 				35FC979E796E38D09AEFA5CA /* Pods_RunnerTests.framework */,
 				7DFC91B02FF792EF00F04DF5 /* WidgetKit.framework */,
@@ -444,9 +437,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

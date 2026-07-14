@@ -13,12 +13,9 @@ import UIKit
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
 
-    // "Fotoğraflı" widget stili için: Flutter'dan gelen fotoğraf bayt
-    // verisini App Group paylaşımlı container'ına yazan köprü.
-    // Widget extension AYRI bir process'te çalıştığı için ana uygulamanın
-    // Documents klasörüne erişemiyor — bu yüzden App Group container'ı
-    // kullanmak zorunludur (bkz. WidgetService.saveUserPhoto).
-    let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "WidgetPhotoChannel")
+    guard let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "WidgetPhotoChannel") else {
+      return
+    }
     let photoChannel = FlutterMethodChannel(
       name: "com.hardaltanesi.app/widget_photo",
       binaryMessenger: registrar.messenger()
@@ -43,7 +40,7 @@ import UIKit
         result(FlutterMethodNotImplemented)
       }
     }
-  }
+}
 
   /// Flutter'dan gelen fotoğraf bayt verisini, widget extension'ın da
   /// erişebildiği App Group paylaşımlı container'ına sabit bir dosya
