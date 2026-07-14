@@ -17,6 +17,8 @@ struct VerseEntry: TimelineEntry {
     let verseReference: String
     let hijriDate: String
     let moonPhase: String
+    let moonIllumination: Double
+    let moonIsWaxing: Bool
     let configuration: VerseWidgetConfigurationIntent
 }
 
@@ -27,6 +29,73 @@ func moonEmoji(for phase: String) -> String {
     case "Dolunay": return "🌕"
     case "Son Dördün": return "🌜"
     default: return "🌙"
+    }
+}
+
+/// Ayın o günkü aydınlanma diskini matematiksel olarak çizen shape.
+/// Hiçbir statik görsele ihtiyaç duymaz — Flutter tarafındaki
+/// MoonPhaseCalculator'dan gelen illumination/isWaxing değerlerine göre
+/// her gün gerçekten farklı, pürüzsüz bir ay diski üretir.
+struct MoonPhaseShape: Shape {
+    var illumination: Double // 0.0 (yeni ay) ... 1.0 (dolunay)
+    var isWaxing: Bool       // true: ay büyüyor, false: ay küçülüyor
+
+    func path(in rect: CGRect) -> Path {
+        let r = min(rect.width, rect.height) / 2
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+
+        // k: -1 (yeni ay, tamamen karanlık) ... +1 (dolunay, tamamen aydınlık)
+        let k = CGFloat(2 * illumination - 1)
+        let litOnRight = isWaxing
+
+        // Bezier ile elips yayı çizmek için standart "kappa" sabiti.
+        let kappa: CGFloat = 0.5522847498
+
+        var path = Path()
+        let top = CGPoint(x: center.x, y: center.y - r)
+        let bottom = CGPoint(x: center.x, y: center.y + r)
+
+        path.move(to: top)
+
+        // 1) Dış yarım daire — aydınlık tarafın sabit dış kenarı.
+        path.addArc(
+            center: center,
+            radius: r,
+            startAngle: .degrees(-90),
+            endAngle: .degrees(90),
+            clockwise: !litOnRight
+        )
+
+        // 2) İç terminatör eğrisi — x-yarıçapı k'ya göre şişer/çöker.
+        let ellipseRx = r * k * (litOnRight ? -1 : 1)
+        let c1 = CGPoint(x: center.x + ellipseRx, y: bottom.y - r * kappa)
+        let c2 = CGPoint(x: center.x + ellipseRx, y: top.y + r * kappa)
+
+        path.addCurve(to: top, control1: c1, control2: c2)
+        path.closeSubpath()
+
+        return path
+    }
+}
+
+/// Ay diskini (karanlık zemin + aydınlık kısım) hazır bir View olarak sunar.
+/// Widget'ın herhangi bir yerinde `MoonPhaseView(illumination:isWaxing:size:)`
+/// ile kullanılabilir.
+struct MoonPhaseView: View {
+    let illumination: Double
+    let isWaxing: Bool
+    let size: CGFloat
+    var litColor: Color = Color(red: 0.961, green: 0.933, blue: 0.847)
+    var darkColor: Color = Color(red: 0.15, green: 0.13, blue: 0.10)
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(darkColor)
+            MoonPhaseShape(illumination: illumination, isWaxing: isWaxing)
+                .fill(litColor)
+        }
+        .frame(width: size, height: size)
     }
 }
 
@@ -54,16 +123,18 @@ func defaultBackgroundImageName() -> String {
 
 struct VerseProvider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> VerseEntry {
-        VerseEntry(
-            date: Date(),
-            verseId: "",
-            verseText: "Bir ayet gününüzü değiştirebilir.",
-            verseReference: "İnşirah Suresi, 6. Ayet",
-            hijriDate: "19 Zilhicce 1446",
-            moonPhase: "Hilal",
-            configuration: VerseWidgetConfigurationIntent()
-        )
-    }
+    VerseEntry(
+        date: Date(),
+        verseId: "",
+        verseText: "Bir ayet gününüzü değiştirebilir.",
+        verseReference: "İnşirah Suresi, 6. Ayet",
+        hijriDate: "19 Zilhicce 1446",
+        moonPhase: "Hilal",
+        moonIllumination: 0.3,
+        moonIsWaxing: true,
+        configuration: VerseWidgetConfigurationIntent()
+    )
+}
 
     func snapshot(for configuration: VerseWidgetConfigurationIntent, in context: Context) async -> VerseEntry {
         loadEntry(configuration: configuration)
@@ -76,18 +147,23 @@ struct VerseProvider: AppIntentTimelineProvider {
     }
 
     private func loadEntry(configuration: VerseWidgetConfigurationIntent) -> VerseEntry {
-        let defaults = UserDefaults(suiteName: appGroupId)
-        return VerseEntry(
-            date: Date(),
-            verseId: defaults?.string(forKey: "verse_id") ?? "",
-            verseText: defaults?.string(forKey: "verse_text")
-                ?? "Bir ayet gününüzü değiştirebilir.",
-            verseReference: defaults?.string(forKey: "verse_reference") ?? "",
-            hijriDate: defaults?.string(forKey: "hijri_date") ?? "",
-            moonPhase: defaults?.string(forKey: "moon_phase") ?? "Hilal",
-            configuration: configuration
-        )
-    }
+    let defaults = UserDefaults(suiteName: appGroupId)
+    let illuminationString = defaults?.string(forKey: "moon_illumination") ?? "0.5"
+    let isWaxingString = defaults?.string(forKey: "moon_is_waxing") ?? "true"
+
+    return VerseEntry(
+        date: Date(),
+        verseId: defaults?.string(forKey: "verse_id") ?? "",
+        verseText: defaults?.string(forKey: "verse_text")
+            ?? "Bir ayet gününüzü değiştirebilir.",
+        verseReference: defaults?.string(forKey: "verse_reference") ?? "",
+        hijriDate: defaults?.string(forKey: "hijri_date") ?? "",
+        moonPhase: defaults?.string(forKey: "moon_phase") ?? "Hilal",
+        moonIllumination: Double(illuminationString) ?? 0.5,
+        moonIsWaxing: isWaxingString == "true",
+        configuration: configuration
+    )
+}
 }
 
 struct VerseWidgetEntryView: View {
@@ -227,15 +303,38 @@ struct VerseWidgetEntryView: View {
     GeometryReader { geo in
         ZStack(alignment: .bottomLeading) {
             Group {
-                if let uiImage = loadUserPhoto() {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                } else {
-                    Image(defaultBackgroundImageName())
-                        .resizable()
-                }
-            }
+    if let uiImage = loadUserPhoto() {
+        Image(uiImage: uiImage)
+            .resizable()
             .aspectRatio(contentMode: .fill)
+    } else {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color(red: 0.05, green: 0.05, blue: 0.12),
+                    Color(red: 0.02, green: 0.02, blue: 0.06)
+                ],
+                startPoint: .top, endPoint: .bottom
+            )
+
+            // Tek, gerçekçi (dokulu, kraterli) bir ay fotoğrafı — Assets'e
+            // "MoonTexture" adıyla eklenmeli. Sadece aydınlık kısmı,
+            // MoonPhaseShape ile maskeleniyor; karanlık kısım otomatik
+            // gizleniyor. Böylece TEK dosyayla, her gün gerçek şekle göre
+            // değişen, gerçekçi görünümlü bir ay elde ediyoruz.
+            Image("MoonTexture")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 90, height: 90)
+                .mask(
+                    MoonPhaseShape(
+                        illumination: entry.moonIllumination,
+                        isWaxing: entry.moonIsWaxing
+                    )
+                )
+        }
+    }
+}
             .frame(width: geo.size.width, height: geo.size.height)
             .clipped()
 
