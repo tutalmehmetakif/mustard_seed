@@ -109,7 +109,16 @@ func loadUserPhoto() -> UIImage? {
     guard let data = try? Data(contentsOf: fileURL) else { return nil }
     return UIImage(data: data)
 }
-
+/// AstronomyAPI'den indirilip App Group container'ına kaydedilen,
+/// o günün GERÇEK ay fotoğrafını okur (bkz. WidgetService.syncMoonPhoto).
+func loadMoonPhoto() -> UIImage? {
+    guard let containerURL = FileManager.default.containerURL(
+        forSecurityApplicationGroupIdentifier: appGroupId
+    ) else { return nil }
+    let fileURL = containerURL.appendingPathComponent("widget_moon_photo.jpg")
+    guard let data = try? Data(contentsOf: fileURL) else { return nil }
+    return UIImage(data: data)
+}
 /// Kullanıcı fotoğraf seçmediyse, güne göre döngüsel olarak hazır
 /// görsellerden birini seçer — Android tarafındaki mantıkla birebir aynı.
 func defaultBackgroundImageName() -> String {
@@ -302,36 +311,27 @@ struct VerseWidgetEntryView: View {
     private var photoLayout: some View {
     GeometryReader { geo in
         ZStack(alignment: .bottomLeading) {
-            Group {
+Group {
     if let uiImage = loadUserPhoto() {
-        Image(uiImage: uiImage)
-            .resizable()
-            .aspectRatio(contentMode: .fill)
-    } else {
         ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 0.05, green: 0.05, blue: 0.12),
-                    Color(red: 0.02, green: 0.02, blue: 0.06)
-                ],
-                startPoint: .top, endPoint: .bottom
-            )
-
-            // Tek, gerçekçi (dokulu, kraterli) bir ay fotoğrafı — Assets'e
-            // "MoonTexture" adıyla eklenmeli. Sadece aydınlık kısmı,
-            // MoonPhaseShape ile maskeleniyor; karanlık kısım otomatik
-            // gizleniyor. Böylece TEK dosyayla, her gün gerçek şekle göre
-            // değişen, gerçekçi görünümlü bir ay elde ediyoruz.
-            Image("MoonTexture")
+            Color.green
+            Image(uiImage: uiImage)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
-                .frame(width: 90, height: 90)
-                .mask(
-                    MoonPhaseShape(
-                        illumination: entry.moonIllumination,
-                        isWaxing: entry.moonIsWaxing
-                    )
-                )
+            Text("USER PHOTO").foregroundColor(.white).font(.caption)
+        }
+    } else if let moonImage = loadMoonPhoto() {
+        ZStack {
+            Color.blue
+            Image(uiImage: moonImage)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+            Text("MOON PHOTO").foregroundColor(.white).font(.caption)
+        }
+    } else {
+        ZStack {
+            Color.red
+            Text("FALLBACK").foregroundColor(.white).font(.caption)
         }
     }
 }

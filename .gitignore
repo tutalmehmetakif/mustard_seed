@@ -44,6 +44,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# API anahtarları - asla commit edilmez
+lib/core/config/api_keys.dart
+
 
 # Ortam degiskenleri (API key'leri icerir, asla commit edilmemeli)
 supabase/scripts/.env

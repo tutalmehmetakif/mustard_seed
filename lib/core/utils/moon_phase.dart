@@ -1,45 +1,55 @@
-/// Widget'ta gösterilecek 4 temel ay evresi.
-/// Doküman: "Hilal, İlk Dördün, Dolunay, Son Dördün"
-enum MoonPhase { hilal, ilkDordun, dolunay, sonDordun }
+import 'dart:math' as math;
 
-extension MoonPhaseLabel on MoonPhase {
-  String get label {
-    switch (this) {
-      case MoonPhase.hilal:
-        return 'Hilal';
-      case MoonPhase.ilkDordun:
-        return 'İlk Dördün';
-      case MoonPhase.dolunay:
-        return 'Dolunay';
-      case MoonPhase.sonDordun:
-        return 'Son Dördün';
-    }
-  }
+/// Ayın o günkü durumunu temsil eden veri.
+///
+/// [illumination]: 0.0 (yeni ay, tamamen karanlık) ile 1.0 (dolunay,
+/// tamamen aydınlık) arasında sürekli bir değer.
+///
+/// [isWaxing]: Ay büyüyor mu (true) yoksa küçülüyor mu (false).
+///
+/// [label]: Widget'ta gösterilen 4 kategorili metin ("Hilal" vb.).
+class MoonPhaseData {
+  const MoonPhaseData({
+    required this.illumination,
+    required this.isWaxing,
+    required this.label,
+  });
+
+  final double illumination;
+  final bool isWaxing;
+  final String label;
 }
 
 /// Basit bir ay evresi hesaplayıcı.
 ///
 /// Astronomik gözleme dayanmıyor — bilinen bir yeniay referans tarihinden
 /// itibaren ~29.53 günlük senodik ay döngüsüne göre yaklaşık hesap yapıyor.
-/// Widget'ta "Hilal mi, Dolunay mı" göstermek için yeterli hassasiyette;
-/// gerçek dini/namaz vakti hesaplamaları için kullanılmamalı (o ayrı,
-/// çok daha hassas bir konu).
 class MoonPhaseCalculator {
   MoonPhaseCalculator._();
 
-  // Bilinen bir yeniay referans anı: 6 Ocak 2000, 18:14 UTC.
   static final DateTime _knownNewMoon = DateTime.utc(2000, 1, 6, 18, 14);
   static const double _synodicMonthDays = 29.53058867;
 
-  static MoonPhase calculate(DateTime date) {
+  static MoonPhaseData calculate(DateTime date) {
     final daysSinceNewMoon =
         date.toUtc().difference(_knownNewMoon).inHours / 24;
     final phaseFraction =
         (daysSinceNewMoon % _synodicMonthDays) / _synodicMonthDays;
 
-    if (phaseFraction < 0.25) return MoonPhase.hilal;
-    if (phaseFraction < 0.5) return MoonPhase.ilkDordun;
-    if (phaseFraction < 0.75) return MoonPhase.dolunay;
-    return MoonPhase.sonDordun;
+    final illumination = (1 - math.cos(2 * math.pi * phaseFraction)) / 2;
+    final isWaxing = phaseFraction < 0.5;
+
+    return MoonPhaseData(
+      illumination: illumination,
+      isWaxing: isWaxing,
+      label: _labelFor(phaseFraction),
+    );
+  }
+
+  static String _labelFor(double phaseFraction) {
+    if (phaseFraction < 0.25) return 'Hilal';
+    if (phaseFraction < 0.5) return 'İlk Dördün';
+    if (phaseFraction < 0.75) return 'Dolunay';
+    return 'Son Dördün';
   }
 }
