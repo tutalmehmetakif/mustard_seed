@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/moon_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:contentDescription="@null" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="GÜNÜN AYETİ"
+                android:textColor="#B3F5EEE4"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.18" />
+
+            <TextView
+                android:id="@+id/verse_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="serif"
+                android:textStyle="italic"
+                android:textColor="#FFFFFFFF"
+                android:textSize="14sp"
+                android:maxLines="4"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/verse_reference"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="#C9A227"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:textAllCaps="true" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/moon_circle"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:layout_marginStart="12dp"
+            android:contentDescription="@null" />
+    </LinearLayout>
+</FrameLayout>

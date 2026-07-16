@@ -17,8 +17,7 @@ class WidgetPhotoSettingTile extends StatefulWidget {
   final bool isDarkMode;
 
   @override
-  State<WidgetPhotoSettingTile> createState() =>
-      _WidgetPhotoSettingTileState();
+  State<WidgetPhotoSettingTile> createState() => _WidgetPhotoSettingTileState();
 }
 
 class _WidgetPhotoSettingTileState extends State<WidgetPhotoSettingTile> {
@@ -110,7 +109,8 @@ class _WidgetPhotoSettingTileState extends State<WidgetPhotoSettingTile> {
           const SizedBox(height: 4),
           Text(
             'Ana ekran widget\'ında "Fotoğraflı" stili seçtiğinde '
-            'arka planda görünecek fotoğraf.',
+            'arka planda görünecek fotoğraf. Fotoğraf seçmezsen, o günün '
+            'gerçek ay görünümü otomatik gösterilir.',
             style: AppTextStyles.bodyMd(color: mutedColor),
           ),
           const SizedBox(height: 16),
@@ -183,8 +183,9 @@ class _WidgetPhotoSettingTileState extends State<WidgetPhotoSettingTile> {
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                           child: Text(
-                            'Fotoğrafı Kaldır',
-                            style: AppTextStyles.labelSm(color: mutedColor),
+                            'Kaldır ve Ay\'a Geri Dön',
+                            style: AppTextStyles.labelSm(color: mutedColor)
+                                .copyWith(decoration: TextDecoration.underline),
                           ),
                         ),
                       ),
