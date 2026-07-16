@@ -19,6 +19,8 @@ struct VerseEntry: TimelineEntry {
     let moonPhase: String
     let moonIllumination: Double
     let moonIsWaxing: Bool
+    let moonPhaseName: String
+    let moonDay: Int   // YENİ
     let configuration: VerseWidgetConfigurationIntent
 }
 
@@ -121,17 +123,31 @@ func loadMoonPhoto() -> UIImage? {
 }
 /// Kullanıcı fotoğraf seçmediyse, güne göre döngüsel olarak hazır
 /// görsellerden birini seçer — Android tarafındaki mantıkla birebir aynı.
-func defaultBackgroundImageName() -> String {
-    let images = [
-        "WidgetDefaultBG1", "WidgetDefaultBG2", "WidgetDefaultBG3",
-        "WidgetDefaultBG4", "WidgetDefaultBG5",
-    ]
-    let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
-    return images[dayOfYear % images.count]
+/// Flutter tarafındaki MoonPhaseName enum değerini (örn. "waxingCrescent"),
+/// Assets.xcassets'teki NASA fotoğrafının adına çevirir.
+func moonPhaseImageName(for phaseName: String) -> String {
+    switch phaseName {
+    case "newMoon": return "MoonNew"
+    case "waxingCrescent": return "MoonWaxingCrescent"
+    case "firstQuarter": return "MoonFirstQuarter"
+    case "waxingGibbous": return "MoonWaxingGibbous"
+    case "full": return "MoonFull"
+    case "waningGibbous": return "MoonWaningGibbous"
+    case "thirdQuarter": return "MoonThirdQuarter"
+    case "waningCrescent": return "MoonWaningCrescent"
+    default: return "MoonFull"
+    }
+}
+
+/// Ay döngüsünün 0-29. gününe karşılık gelen, o günün GERÇEK NASA
+/// fotoğrafının Assets.xcassets'teki adını döner.
+func moonDayImageName(for day: Int) -> String {
+    let clamped = max(0, min(29, day))
+    return "MoonDay\(clamped)"
 }
 
 struct VerseProvider: AppIntentTimelineProvider {
-    func placeholder(in context: Context) -> VerseEntry {
+   func placeholder(in context: Context) -> VerseEntry {
     VerseEntry(
         date: Date(),
         verseId: "",
@@ -141,10 +157,11 @@ struct VerseProvider: AppIntentTimelineProvider {
         moonPhase: "Hilal",
         moonIllumination: 0.3,
         moonIsWaxing: true,
+        moonPhaseName: "waxingCrescent",
+        moonDay: 3,   // YENİ
         configuration: VerseWidgetConfigurationIntent()
     )
 }
-
     func snapshot(for configuration: VerseWidgetConfigurationIntent, in context: Context) async -> VerseEntry {
         loadEntry(configuration: configuration)
     }
@@ -159,6 +176,8 @@ struct VerseProvider: AppIntentTimelineProvider {
     let defaults = UserDefaults(suiteName: appGroupId)
     let illuminationString = defaults?.string(forKey: "moon_illumination") ?? "0.5"
     let isWaxingString = defaults?.string(forKey: "moon_is_waxing") ?? "true"
+    let phaseNameString = defaults?.string(forKey: "moon_phase_name") ?? "full"
+    let moonDayString = defaults?.string(forKey: "moon_day") ?? "15"
 
     return VerseEntry(
         date: Date(),
@@ -170,6 +189,8 @@ struct VerseProvider: AppIntentTimelineProvider {
         moonPhase: defaults?.string(forKey: "moon_phase") ?? "Hilal",
         moonIllumination: Double(illuminationString) ?? 0.5,
         moonIsWaxing: isWaxingString == "true",
+        moonPhaseName: phaseNameString,
+        moonDay: Int(moonDayString) ?? 15,   // YENİ
         configuration: configuration
     )
 }
@@ -241,9 +262,10 @@ struct VerseWidgetEntryView: View {
         )
     }
 
-    private var moonPhaseLayout: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .top) {
+   private var moonPhaseLayout: some View {
+    VStack(alignment: .leading, spacing: 0) {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 5) {
                     Circle().fill(goldAccent).frame(width: 5, height: 5)
                     Text("GÜNÜN AYETİ")
@@ -251,118 +273,229 @@ struct VerseWidgetEntryView: View {
                         .tracking(2)
                         .foregroundColor(creamText.opacity(0.7))
                 }
-                Spacer()
-                HStack(spacing: 5) {
-                    Text(moonEmoji(for: entry.moonPhase)).font(.system(size: 15))
-                    VStack(alignment: .trailing, spacing: 1) {
-                        Text(entry.moonPhase.uppercased())
-                            .font(.system(size: 8, weight: .semibold))
-                            .tracking(1.5)
-                            .foregroundColor(creamText.opacity(0.85))
-                        Text(entry.hijriDate)
-                            .font(.system(size: 7, weight: .light))
-                            .foregroundColor(creamText.opacity(0.5))
-                    }
-                }
+                Text(entry.hijriDate)
+                    .font(.system(size: 8, weight: .light))
+                    .foregroundColor(creamText.opacity(0.5))
             }
-            Text("\"\(entry.verseText)\"")
-                .font(.system(size: 16, design: .serif))
-                .italic()
-                .foregroundColor(creamText)
-                .lineSpacing(3)
-                .lineLimit(3)
-                .padding(.top, 14)
-            Rectangle().fill(goldAccent.opacity(0.12)).frame(height: 1)
-                .padding(.top, 14).padding(.bottom, 10)
-            HStack(spacing: 6) {
-                Circle().fill(goldAccent).frame(width: 5, height: 5)
-                    .shadow(color: goldAccent.opacity(0.6), radius: 4)
-                Text(entry.verseReference.uppercased())
-                    .font(.system(size: 9, weight: .medium))
-                    .tracking(1.5)
-                    .foregroundColor(goldAccent)
+
+            Spacer()
+
+            // Gerçek NASA ay fotoğrafı, daire şeklinde kırpılmış —
+            // kare/siyah kenar tamamen kayboluyor, sadece yuvarlak ay
+            // ikonu kartın arka planının üstünde "yüzüyor" gibi duruyor.
+            VStack(spacing: 3) {
+                Image(moonPhaseImageName(for: entry.moonPhaseName))
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: family == .systemSmall ? 34 : 46,
+                           height: family == .systemSmall ? 34 : 46)
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle().stroke(goldAccent.opacity(0.3), lineWidth: 1)
+                    )
+                Text(entry.moonPhase.uppercased())
+                    .font(.system(size: 7, weight: .semibold))
+                    .tracking(1)
+                    .foregroundColor(creamText.opacity(0.6))
             }
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            ZStack {
-                LinearGradient(
-                    colors: [
-                        Color(red: 0.09, green: 0.07, blue: 0.05),
-                        Color(red: 0.122, green: 0.106, blue: 0.075),
-                        Color(red: 0.07, green: 0.06, blue: 0.04)
-                    ],
-                    startPoint: .topLeading, endPoint: .bottomTrailing
-                )
-                GeometryReader { geo in
-                    Circle().fill(goldAccent.opacity(0.18))
-                        .frame(width: 90, height: 90).blur(radius: 30)
-                        .position(x: geo.size.width - 10, y: 0)
-                }
-            }
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(goldAccent.opacity(0.15), lineWidth: 1)
-        )
+
+        Text("\"\(entry.verseText)\"")
+            .font(.system(size: family == .systemSmall ? 13 : 16, design: .serif))
+            .italic()
+            .foregroundColor(creamText)
+            .lineSpacing(3)
+            .lineLimit(family == .systemSmall ? 4 : 3)
+            .minimumScaleFactor(0.75)
+            .padding(.top, 14)
+
+        Rectangle().fill(goldAccent.opacity(0.12)).frame(height: 1)
+            .padding(.top, 14).padding(.bottom, 10)
+
+        HStack(spacing: 6) {
+            Circle().fill(goldAccent).frame(width: 5, height: 5)
+                .shadow(color: goldAccent.opacity(0.6), radius: 4)
+            Text(entry.verseReference.uppercased())
+                .font(.system(size: 9, weight: .medium))
+                .tracking(1.5)
+                .foregroundColor(goldAccent)
+                .lineLimit(1)
+        }
     }
+    .padding(16)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(
+        LinearGradient(
+            colors: [
+                Color(red: 0.09, green: 0.07, blue: 0.05),
+                Color(red: 0.122, green: 0.106, blue: 0.075),
+                Color(red: 0.07, green: 0.06, blue: 0.04)
+            ],
+            startPoint: .topLeading, endPoint: .bottomTrailing
+        )
+    )
+    .overlay(
+        RoundedRectangle(cornerRadius: 24, style: .continuous)
+            .stroke(goldAccent.opacity(0.15), lineWidth: 1)
+    )
+}
 
     private var photoLayout: some View {
     GeometryReader { geo in
-        ZStack(alignment: .bottomLeading) {
-Group {
-    if let uiImage = loadUserPhoto() {
-        ZStack {
-            Color.green
-            Image(uiImage: uiImage)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-            Text("USER PHOTO").foregroundColor(.white).font(.caption)
+        Group {
+            if let uiImage = loadUserPhoto() {
+                ZStack(alignment: .bottomLeading) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .clipped()
+
+                    LinearGradient(
+                        colors: [Color.black.opacity(0.85), Color.black.opacity(0.0)],
+                        startPoint: .bottom, endPoint: .top
+                    )
+                    .frame(width: geo.size.width, height: geo.size.height)
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("\"\(entry.verseText)\"")
+                            .font(.system(size: family == .systemSmall ? 12 : 14, design: .serif))
+                            .italic()
+                            .foregroundColor(.white)
+                            .lineLimit(family == .systemSmall ? 4 : 3)
+                            .minimumScaleFactor(0.7)
+                            .shadow(color: .black.opacity(0.6), radius: 3)
+                        HStack(spacing: 5) {
+                            Circle().fill(goldAccent).frame(width: 4, height: 4)
+                            Text(entry.verseReference.uppercased())
+                                .font(.system(size: 8, weight: .semibold))
+                                .tracking(1.2)
+                                .foregroundColor(goldAccent)
+                                .lineLimit(1)
+                        }
+                    }
+                    .padding(14)
+                }
+            } else if family == .systemSmall {
+                smallMoonLayout(geo: geo)
+            } else {
+                mediumMoonLayout(geo: geo)
+            }
         }
-    } else if let moonImage = loadMoonPhoto() {
-        ZStack {
-            Color.blue
-            Image(uiImage: moonImage)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-            Text("MOON PHOTO").foregroundColor(.white).font(.caption)
-        }
-    } else {
-        ZStack {
-            Color.red
-            Text("FALLBACK").foregroundColor(.white).font(.caption)
-        }
+        .frame(width: geo.size.width, height: geo.size.height)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 }
+
+/// Küçük (systemSmall) widget için: ay üstte küçük bir madalyon,
+/// metin altında tam genişlikte — VStack tabanlı, kare orana uygun.
+/// Küçük (systemSmall) widget için: ay üstte, büyük ve ortalı; altında
+/// ortalanmış etiket, ayet metni ve referans — tamamen dikey/merkezi
+/// düzen, kare orana uygun.
+private func smallMoonLayout(geo: GeometryProxy) -> some View {
+    let moonImageName = moonDayImageName(for: entry.moonDay)
+    let moonSize = geo.size.width * 0.42
+
+    return ZStack {
+        Image(moonImageName)
+            .resizable()
+            .aspectRatio(contentMode: .fill)
             .frame(width: geo.size.width, height: geo.size.height)
+            .blur(radius: 16)
+            .overlay(Color.black.opacity(0.65))
             .clipped()
 
-            LinearGradient(
-                colors: [Color.black.opacity(0.85), Color.black.opacity(0.0)],
-                startPoint: .bottom, endPoint: .top
-            )
-            .frame(width: geo.size.width, height: geo.size.height)
+        VStack(spacing: 8) {
+            Image(moonImageName)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: moonSize, height: moonSize)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(goldAccent.opacity(0.4), lineWidth: 1.5))
+                .shadow(color: Color.black.opacity(0.4), radius: 6)
 
+            HStack(spacing: 4) {
+                Circle().fill(goldAccent).frame(width: 4, height: 4)
+                Text("GÜNÜN AYETİ")
+                    .font(.system(size: 8, weight: .semibold))
+                    .tracking(1.5)
+                    .foregroundColor(creamText.opacity(0.7))
+            }
+
+            Text("\"\(entry.verseText)\"")
+                .font(.system(size: 11, design: .serif))
+                .italic()
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+                .lineLimit(3)
+                .minimumScaleFactor(0.7)
+                .shadow(color: .black.opacity(0.5), radius: 3)
+
+            HStack(spacing: 4) {
+                Circle().fill(goldAccent).frame(width: 3, height: 3)
+                Text(entry.verseReference.uppercased())
+                    .font(.system(size: 7, weight: .semibold))
+                    .tracking(0.8)
+                    .foregroundColor(goldAccent)
+                    .lineLimit(1)
+            }
+            
+        }
+        .padding(14)
+    }
+}
+
+/// Geniş (systemMedium) widget için: metin solda, büyük ay sağda —
+/// HStack tabanlı, yatay dikdörtgen orana uygun.
+private func mediumMoonLayout(geo: GeometryProxy) -> some View {
+    let moonImageName = moonDayImageName(for: entry.moonDay)
+    let moonCircleSize = geo.size.height * 0.85
+
+    return ZStack {
+        Image(moonImageName)
+            .resizable()
+            .aspectRatio(contentMode: .fill)
+            .frame(width: geo.size.width, height: geo.size.height)
+            .blur(radius: 18)
+            .overlay(Color.black.opacity(0.55))
+            .clipped()
+
+        HStack(alignment: .center, spacing: 10) {
             VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 5) {
+                    Circle().fill(goldAccent).frame(width: 5, height: 5)
+                    Text("GÜNÜN AYETİ")
+                        .font(.system(size: 9, weight: .semibold))
+                        .tracking(2)
+                        .foregroundColor(creamText.opacity(0.7))
+                }
                 Text("\"\(entry.verseText)\"")
-                    .font(.system(size: 14, design: .serif))
+                    .font(.system(size: 15, design: .serif))
                     .italic()
                     .foregroundColor(.white)
-                    .lineLimit(3)
-                    .shadow(color: .black.opacity(0.6), radius: 3)
+                    .lineLimit(4)
+                    .minimumScaleFactor(0.65)
+                    .shadow(color: .black.opacity(0.5), radius: 3)
                 HStack(spacing: 5) {
                     Circle().fill(goldAccent).frame(width: 4, height: 4)
                     Text(entry.verseReference.uppercased())
                         .font(.system(size: 8, weight: .semibold))
                         .tracking(1.2)
                         .foregroundColor(goldAccent)
+                        .lineLimit(1)
                 }
             }
-            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Image(moonImageName)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: moonCircleSize, height: moonCircleSize)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(goldAccent.opacity(0.4), lineWidth: 1.5))
+                .shadow(color: Color.black.opacity(0.4), radius: 8)
         }
-        .frame(width: geo.size.width, height: geo.size.height)
-        .clipped()
+        .padding(16)
     }
 }
 }

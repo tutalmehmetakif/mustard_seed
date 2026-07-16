@@ -76,6 +76,16 @@ static const String _astronomyAppSecret = ApiKeys.astronomyAppSecret;
       moonPhase.isWaxing.toString(),
     );
 
+    final r8 = await HomeWidget.saveWidgetData<String>(
+  'moon_phase_name',
+  moonPhase.phaseName.name, // örn. "waxingCrescent"
+);
+
+final r9 = await HomeWidget.saveWidgetData<String>(
+  'moon_day',
+  moonPhase.moonDay.toString(), // örn. "2"
+);
+
     debugPrint(
       '[WidgetService] saveWidgetData sonuçları -> '
       'verse_id: $r1, verse_text: $r2, verse_reference: $r3, '
