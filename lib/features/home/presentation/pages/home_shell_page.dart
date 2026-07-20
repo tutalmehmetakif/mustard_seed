@@ -116,23 +116,19 @@ class _BottomNavBar extends StatelessWidget {
       ),
       unselectedLabelStyle: AppTextStyles.labelSm(color: unselectedColor),
       items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home_outlined),
-          label: 'Ana Sayfa',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.auto_awesome_outlined),
-          label: "Kur'an'a Sor",
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.circle_outlined),
-          label: 'Zikir',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_outline),
-          label: 'Profil',
-        ),
-      ],
+  BottomNavigationBarItem(
+    icon: Icon(Icons.home_outlined),
+    label: 'Ana Sayfa',
+  ),
+  BottomNavigationBarItem(
+    icon: Icon(Icons.auto_awesome_outlined),
+    label: "Kur'an'a Sor",
+  ),
+  BottomNavigationBarItem(
+    icon: Icon(Icons.person_outline),
+    label: 'Profil',
+  ),
+],
     );
   }
 }

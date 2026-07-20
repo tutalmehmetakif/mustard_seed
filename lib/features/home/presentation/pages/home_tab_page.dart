@@ -14,7 +14,6 @@ import '../bloc/home_bloc.dart';
 import '../event/home_event.dart';
 import '../state/home_state.dart';
 import '../widgets/ask_quran_quick_card.dart';
-import '../widgets/quick_zikir_counter_card.dart';
 import '../widgets/recommended_card.dart';
 import '../widgets/verse_card.dart';
 
@@ -42,9 +41,7 @@ class HomeTabPage extends StatelessWidget {
             const SizedBox(height: 24),
             const VerseCard(),
             const SizedBox(height: 24),
-            const AskQuranQuickCard(),
-            const SizedBox(height: 16),
-            const QuickZikirCounterCard(),
+            const AskQuranQuickCard(),            
             const SizedBox(height: 28),
             BlocBuilder<HomeBloc, HomeState>(
   builder: (context, state) {

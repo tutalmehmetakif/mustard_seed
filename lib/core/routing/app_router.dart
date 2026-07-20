@@ -1,11 +1,4 @@
-// Değişiklik: ZikirBloc artık StatefulShellRoute'un builder'ında
-// (HomeShellPage'i saran seviyede) oluşturuluyor — böylece hem Ana Sayfa
-// hem Zikir sekmesi AYNI bloc instance'ını paylaşıyor, ikisi arasında
-// tam senkron sağlanıyor. Önceki halinde BlocProvider<ZikirBloc> sadece
-// zikir branch'inin kendi ShellRoute'unda vardı, bu yüzden Ana Sayfa'nın
-// ona erişimi yoktu.
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mustard_seed/features/auth/domain/presentation/pages/email_auth_page.dart';
 
@@ -16,9 +9,6 @@ import '../../features/home/presentation/pages/verse_detail_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
-import '../../features/zikir/presentation/bloc/zikir_bloc.dart';
-import '../../features/zikir/presentation/pages/zikir_focus_page.dart';
-import '../../features/zikir/presentation/pages/zikir_page.dart';
 
 /// Uygulamanın tüm sayfa/route tanımları burada toplanır.
 ///
@@ -29,6 +19,10 @@ import '../../features/zikir/presentation/pages/zikir_page.dart';
 /// - URL/path tabanlı yapı, test edilmesi ve yeni sayfa eklemesi
 ///   (create_feature.sh ile üretilen her yeni feature'ı buraya tek satır
 ///   eklemek yeterli) çok daha kolay.
+///
+/// NOT(zikir-kaldırıldı): Zikir sekmesi ve ilgili route'lar (/zikir,
+/// /zikir/focus) ürün kararıyla kaldırıldı. ZikirBloc artık hiçbir
+/// yerde sağlanmıyor.
 GoRouter buildAppRouter() {
   return GoRouter(
     initialLocation: '/splash',
@@ -68,25 +62,9 @@ GoRouter buildAppRouter() {
           verseId: state.pathParameters['id']!,
         ),
       ),
-      // Odak Modu — StatefulShellRoute DIŞINDA, tam ekran (AppBar/BottomNav yok).
-      // Aynı ZikirBloc instance'ı GoRouter'ın extra parametresiyle aktarılır
-      // (bkz. zikir_view.dart -> context.push('/zikir/focus', extra: ...)).
-      GoRoute(
-        path: '/zikir/focus',
-        builder: (context, state) => BlocProvider.value(
-          value: state.extra! as ZikirBloc,
-          child: const ZikirFocusPage(),
-        ),
-      ),
       StatefulShellRoute.indexedStack(
-        // ZikirBloc BURADA oluşturuluyor — HomeShellPage'in tamamını
-        // (yani 4 sekmenin hepsini: Ana Sayfa, Kur'an'a Sor, Zikir, Profil)
-        // sarıyor. Böylece Ana Sayfa'daki QuickZikirCounterCard ile Zikir
-        // sekmesindeki ZikirView aynı bloc'u okur/yazar — tam senkron.
-        builder: (context, state, navigationShell) => BlocProvider(
-          create: (_) => ZikirBloc(),
-          child: HomeShellPage(navigationShell: navigationShell),
-        ),
+        builder: (context, state, navigationShell) =>
+            HomeShellPage(navigationShell: navigationShell),
         branches: [
           StatefulShellBranch(
             routes: [
@@ -101,14 +79,6 @@ GoRouter buildAppRouter() {
               GoRoute(
                 path: '/ask',
                 builder: (context, state) => const AskPage(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/zikir',
-                builder: (context, state) => const ZikirView(),
               ),
             ],
           ),
