@@ -7,13 +7,14 @@
 // ask-quran > Secrets bölümünden eklenir):
 //   GEMINI_API_KEY       -> embedding üretmek için, ÜCRETSİZ
 //                           (aistudio.google.com'dan alınır, kredi kartı gerekmez)
-//   ANTHROPIC_API_KEY    -> Claude ile cevap üretmek için
+//   OPENAI_API_KEY       -> cevap üretmek için (chat completion)
 //
 // Akış:
 // 1. Kullanıcının sorusunu Google Gemini'nin ÜCRETSİZ embedding API'siyle
-//    vektöre çevir (gemini-embedding-001, 768 boyut)
+//    vektöre çevir (gemini-embedding-001, 768 boyut) — quran_verves
+//    tablosundaki embedding'lerle AYNI model olması ZORUNLU.
 // 2. Bu vektöre en yakın ayetleri `match_quran_verses` fonksiyonuyla bul
-// 3. Bulunan ayetleri "bağlam" olarak Claude'a ver, SADECE bu ayetlere
+// 3. Bulunan ayetleri "bağlam" olarak OpenAI'ye ver, SADECE bu ayetlere
 //    dayanarak cevap üretmesini iste (sistem promptu bunu zorunlu kılar)
 // 4. Cevabı Flutter'a JSON olarak döndür
 
@@ -39,6 +40,9 @@ interface RequestBody {
 }
 
 /// Google Gemini'nin ücretsiz embedding API'sini çağırır.
+/// NOT: quran_verses tablosundaki embedding'ler de bu AYNI modelle
+/// (gemini-embedding-001, 768 boyut) üretildi — burası değişirse
+/// vektör karşılaştırması anlamsız hale gelir.
 async function embedText(text: string, geminiKey: string): Promise<number[]> {
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${geminiKey}`,
@@ -70,13 +74,13 @@ Deno.serve(async (req: Request) => {
     }
 
     const geminiKey = Deno.env.get('GEMINI_API_KEY');
-    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY');
+    const openaiKey = Deno.env.get('OPENAI_API_KEY');
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-    if (!geminiKey || !anthropicKey) {
+    if (!geminiKey || !openaiKey) {
       throw new Error(
-        'GEMINI_API_KEY ve ANTHROPIC_API_KEY secret olarak eklenmeli.',
+        'GEMINI_API_KEY ve OPENAI_API_KEY secret olarak eklenmeli.',
       );
     }
 
@@ -101,33 +105,43 @@ Deno.serve(async (req: Request) => {
       )
       .join('\n\n');
 
-    // 3. Claude'a bağlam + soruyu gönder.
+    // 3. OpenAI'ye bağlam + soruyu gönder.
     const recentHistory = (history ?? [])
       .slice(-6)
-      .map((m) => `${m.sender === 'user' ? 'Kullanıcı' : 'Asistan'}: ${m.text}`)
-      .join('\n');
+      .map((m) => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        content: m.text,
+      }));
 
-    const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
+    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${openaiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 1000,
-        system: SYSTEM_PROMPT,
+        model: 'gpt-4o-mini',
         messages: [
           {
-            role: 'user',
-            content: `İlgili ayetler:\n${context}\n\nÖnceki sohbet:\n${recentHistory}\n\nKullanıcının sorusu: ${message}`,
+            role: 'system',
+            content: `${SYSTEM_PROMPT}\n\nİlgili ayetler:\n${context}`,
           },
+          ...recentHistory,
+          { role: 'user', content: message },
         ],
+        temperature: 0.4,
+        max_tokens: 700,
       }),
     });
-    const claudeData = await claudeResponse.json();
-    const answerText = claudeData.content?.[0]?.text ??
+
+    if (!openaiResponse.ok) {
+      const errText = await openaiResponse.text();
+      console.error('OpenAI API hatası:', errText);
+      throw new Error('Cevap oluşturulamadı');
+    }
+
+    const openaiData = await openaiResponse.json();
+    const answerText = openaiData.choices?.[0]?.message?.content ??
       'Şu an bir cevap üretemedim, lütfen tekrar dene.';
 
     return new Response(
