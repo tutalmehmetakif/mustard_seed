@@ -62,13 +62,10 @@ class VerseWidgetProvider : HomeWidgetProvider() {
             val hijriDate = widgetData.getString("hijri_date", "")
             val moonPhase = widgetData.getString("moon_phase", "Hilal")
 
-            val style = VerseWidgetConfigureActivity.getStyle(context, widgetId)
-
-            when (style) {
-                "minimal" -> renderMinimal(context, appWidgetManager, widgetId, verseText, verseReference)
-                "moon" -> renderMoonPhase(context, appWidgetManager, widgetId, verseText, verseReference, hijriDate, moonPhase, verseId)
-                else -> renderPhoto(context, appWidgetManager, widgetId, widgetData, verseText, verseReference, verseId)
-            }
+           // Widget artık yapılandırma ekranı sunmuyor — kullanıcı ekler eklemez
+// direkt "Fotoğraflı" stili (gerçek ay fotoğrafı ya da kullanıcının
+// kendi fotoğrafı) gösteriliyor.
+renderPhoto(context, appWidgetManager, widgetId, widgetData, verseText, verseReference, verseId)
         }
 
         private fun renderMinimal(

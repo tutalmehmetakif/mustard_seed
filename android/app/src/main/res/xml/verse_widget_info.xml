@@ -5,8 +5,7 @@
     android:targetCellWidth="4"
     android:targetCellHeight="2"
     android:updatePeriodMillis="10800000"
-    android:initialLayout="@layout/verse_widget_moon"
-android:configure="com.hardaltanesi.app.VerseWidgetConfigureActivity"
+    android:initialLayout="@layout/verse_widget_photo_moon_small"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:previewImage="@mipmap/ic_launcher" />

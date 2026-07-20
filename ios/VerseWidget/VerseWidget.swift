@@ -20,8 +20,7 @@ struct VerseEntry: TimelineEntry {
     let moonIllumination: Double
     let moonIsWaxing: Bool
     let moonPhaseName: String
-    let moonDay: Int   // YENİ
-    let configuration: VerseWidgetConfigurationIntent
+    let moonDay: Int
 }
 
 func moonEmoji(for phase: String) -> String {
@@ -146,75 +145,67 @@ func moonDayImageName(for day: Int) -> String {
     return "MoonDay\(clamped)"
 }
 
-struct VerseProvider: AppIntentTimelineProvider {
-   func placeholder(in context: Context) -> VerseEntry {
-    VerseEntry(
-        date: Date(),
-        verseId: "",
-        verseText: "Bir ayet gününüzü değiştirebilir.",
-        verseReference: "İnşirah Suresi, 6. Ayet",
-        hijriDate: "19 Zilhicce 1446",
-        moonPhase: "Hilal",
-        moonIllumination: 0.3,
-        moonIsWaxing: true,
-        moonPhaseName: "waxingCrescent",
-        moonDay: 3,   // YENİ
-        configuration: VerseWidgetConfigurationIntent()
-    )
-}
-    func snapshot(for configuration: VerseWidgetConfigurationIntent, in context: Context) async -> VerseEntry {
-        loadEntry(configuration: configuration)
+struct VerseProvider: TimelineProvider {
+    func placeholder(in context: Context) -> VerseEntry {
+        VerseEntry(
+            date: Date(),
+            verseId: "",
+            verseText: "Bir ayet gününüzü değiştirebilir.",
+            verseReference: "İnşirah Suresi, 6. Ayet",
+            hijriDate: "19 Zilhicce 1446",
+            moonPhase: "Hilal",
+            moonIllumination: 0.3,
+            moonIsWaxing: true,
+            moonPhaseName: "waxingCrescent",
+            moonDay: 3
+        )
     }
 
-    func timeline(for configuration: VerseWidgetConfigurationIntent, in context: Context) async -> Timeline<VerseEntry> {
-        let entry = loadEntry(configuration: configuration)
+    func getSnapshot(in context: Context, completion: @escaping (VerseEntry) -> Void) {
+        completion(loadEntry())
+    }
+
+    func getTimeline(in context: Context, completion: @escaping (Timeline<VerseEntry>) -> Void) {
+        let entry = loadEntry()
         let nextUpdate = Calendar.current.date(byAdding: .hour, value: 3, to: Date())!
-        return Timeline(entries: [entry], policy: .after(nextUpdate))
+        completion(Timeline(entries: [entry], policy: .after(nextUpdate)))
     }
 
-    private func loadEntry(configuration: VerseWidgetConfigurationIntent) -> VerseEntry {
-    let defaults = UserDefaults(suiteName: appGroupId)
-    let illuminationString = defaults?.string(forKey: "moon_illumination") ?? "0.5"
-    let isWaxingString = defaults?.string(forKey: "moon_is_waxing") ?? "true"
-    let phaseNameString = defaults?.string(forKey: "moon_phase_name") ?? "full"
-    let moonDayString = defaults?.string(forKey: "moon_day") ?? "15"
+    private func loadEntry() -> VerseEntry {
+        let defaults = UserDefaults(suiteName: appGroupId)
+        let illuminationString = defaults?.string(forKey: "moon_illumination") ?? "0.5"
+        let isWaxingString = defaults?.string(forKey: "moon_is_waxing") ?? "true"
+        let phaseNameString = defaults?.string(forKey: "moon_phase_name") ?? "full"
+        let moonDayString = defaults?.string(forKey: "moon_day") ?? "15"
 
-    return VerseEntry(
-        date: Date(),
-        verseId: defaults?.string(forKey: "verse_id") ?? "",
-        verseText: defaults?.string(forKey: "verse_text")
-            ?? "Bir ayet gününüzü değiştirebilir.",
-        verseReference: defaults?.string(forKey: "verse_reference") ?? "",
-        hijriDate: defaults?.string(forKey: "hijri_date") ?? "",
-        moonPhase: defaults?.string(forKey: "moon_phase") ?? "Hilal",
-        moonIllumination: Double(illuminationString) ?? 0.5,
-        moonIsWaxing: isWaxingString == "true",
-        moonPhaseName: phaseNameString,
-        moonDay: Int(moonDayString) ?? 15,   // YENİ
-        configuration: configuration
-    )
-}
+        return VerseEntry(
+            date: Date(),
+            verseId: defaults?.string(forKey: "verse_id") ?? "",
+            verseText: defaults?.string(forKey: "verse_text")
+                ?? "Bir ayet gününüzü değiştirebilir.",
+            verseReference: defaults?.string(forKey: "verse_reference") ?? "",
+            hijriDate: defaults?.string(forKey: "hijri_date") ?? "",
+            moonPhase: defaults?.string(forKey: "moon_phase") ?? "Hilal",
+            moonIllumination: Double(illuminationString) ?? 0.5,
+            moonIsWaxing: isWaxingString == "true",
+            moonPhaseName: phaseNameString,
+            moonDay: Int(moonDayString) ?? 15
+        )
+    }
 }
 
 struct VerseWidgetEntryView: View {
     @Environment(\.widgetFamily) var family
     var entry: VerseEntry
 
-    var body: some View {
-        switch family {
-        case .accessoryRectangular:
-            lockScreenLayout
-        default:
-            switch entry.configuration.style {
-            case .minimal:
-                minimalLayout
-            case .moonPhase:
-                moonPhaseLayout
-            case .photo:
-                photoLayout
-            }
-        }
+ var body: some View {
+    switch family {
+    case .accessoryRectangular:
+        lockScreenLayout
+    default:
+        photoLayout
     }
+}
 
     private var lockScreenLayout: some View {
         VStack(alignment: .leading, spacing: 3) {
@@ -504,11 +495,7 @@ struct VerseWidget: Widget {
     let kind: String = "VerseWidget"
 
     var body: some WidgetConfiguration {
-        AppIntentConfiguration(
-            kind: kind,
-            intent: VerseWidgetConfigurationIntent.self,
-            provider: VerseProvider()
-        ) { entry in
+        StaticConfiguration(kind: kind, provider: VerseProvider()) { entry in
             VerseWidgetEntryView(entry: entry)
                 .containerBackground(for: .widget) {
                     Color(red: 0.09, green: 0.07, blue: 0.05)
@@ -520,10 +507,6 @@ struct VerseWidget: Widget {
         .configurationDisplayName("Hardal Tanesi")
         .description("Günün ayetini kilit ekranında ya da ana ekranında gör.")
         .supportedFamilies([.accessoryRectangular, .systemSmall, .systemMedium])
-        // iOS 17+ widget'lara otomatik uygulanan iç kenar boşluğunu kapatır.
-        // Bu olmadan görsellerimiz/gradyanımız widget'ın kenarına tam
-        // oturamıyor, her tarafta boşluk kalıyordu (Android'de bu sorun
-        // yoktu çünkü Android'in böyle bir otomatik margin sistemi yok).
         .contentMarginsDisabled()
     }
 }
