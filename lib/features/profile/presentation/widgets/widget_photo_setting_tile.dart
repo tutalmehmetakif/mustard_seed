@@ -17,7 +17,8 @@ class WidgetPhotoSettingTile extends StatefulWidget {
   final bool isDarkMode;
 
   @override
-  State<WidgetPhotoSettingTile> createState() => _WidgetPhotoSettingTileState();
+  State<WidgetPhotoSettingTile> createState() =>
+      _WidgetPhotoSettingTileState();
 }
 
 class _WidgetPhotoSettingTileState extends State<WidgetPhotoSettingTile> {
@@ -53,10 +54,7 @@ class _WidgetPhotoSettingTileState extends State<WidgetPhotoSettingTile> {
       await _loadCurrentPhoto();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Widget fotoğrafı güncellendi. Widget\'ı "Fotoğraflı" '
-            'stiline geçirmeyi unutma.',
-          ),
+          content: Text('Widget fotoğrafı güncellendi.'),
         ),
       );
     } else {
@@ -75,14 +73,43 @@ class _WidgetPhotoSettingTileState extends State<WidgetPhotoSettingTile> {
     });
   }
 
+  /// iOS'ta gerçek bir dosya yolu değil, "var/yok" bilgisini taşıyan
+  /// sabit bir gösterge ('ios_photo_placeholder') döndüğü için
+  /// Image.file ile açılamaz — sadece Android'de gerçek yol varken
+  /// önizleme gösterilir, iOS'ta "seçili" ikonu gösterilir.
+  Widget _buildPreview(Color backgroundColor, Color mutedColor) {
+    final hasPhoto = _photoPath != null;
+    final canShowRealImage = hasPhoto && !Platform.isIOS;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: SizedBox(
+        width: 56,
+        height: 56,
+        child: canShowRealImage
+            ? Image.file(
+                File(_photoPath!),
+                fit: BoxFit.cover,
+              )
+            : Container(
+                color: backgroundColor,
+                alignment: Alignment.center,
+                child: Icon(
+                  hasPhoto ? Icons.check_circle : Icons.brightness_2_outlined,
+                  color: AppColors.goldBright,
+                  size: 24,
+                ),
+              ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final surfaceColor =
         widget.isDarkMode ? AppColors.surfaceDark : AppColors.surface;
     final backgroundColor =
         widget.isDarkMode ? AppColors.backgroundDark : AppColors.background;
-    final textColor =
-        widget.isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimary;
     final mutedColor = widget.isDarkMode
         ? AppColors.textSecondaryDark
         : AppColors.textSecondary;
@@ -108,93 +135,64 @@ class _WidgetPhotoSettingTileState extends State<WidgetPhotoSettingTile> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Ana ekran widget\'ında "Fotoğraflı" stili seçtiğinde '
-            'arka planda görünecek fotoğraf. Fotoğraf seçmezsen, o günün '
-            'gerçek ay görünümü otomatik gösterilir.',
+            'Ana ekran widget\'ında arka planda görünecek fotoğraf. '
+            'Fotoğraf seçmezsen, o günün gerçek ay görünümü otomatik '
+            'gösterilir.',
             style: AppTextStyles.bodyMd(color: mutedColor),
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: _photoPath != null
-                    ? Image.file(
-                        File(_photoPath!),
-                        width: 64,
-                        height: 64,
-                        fit: BoxFit.cover,
-                      )
-                    : Container(
-                        width: 64,
-                        height: 64,
-                        color: backgroundColor,
-                        child: Icon(
-                          Icons.image_outlined,
-                          color: mutedColor,
-                        ),
-                      ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _pickPhoto,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.gold,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor:
-                                      AlwaysStoppedAnimation(Colors.white),
-                                ),
-                              )
-                            : Text(
-                                _photoPath != null
-                                    ? 'Fotoğrafı Değiştir'
-                                    : 'Fotoğraf Seç',
-                                style: AppTextStyles.labelSm(
-                                  color: Colors.white,
-                                ),
-                              ),
-                      ),
-                    ),
-                    if (_photoPath != null) ...[
-                      const SizedBox(height: 8),
-                      MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: TextButton(
-                          onPressed: _isLoading ? null : _removePhoto,
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: const Size(0, 0),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: Text(
-                            'Kaldır ve Ay\'a Geri Dön',
-                            style: AppTextStyles.labelSm(color: mutedColor)
-                                .copyWith(decoration: TextDecoration.underline),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
+          // Row yerine Column — dar ekranlarda (iOS/Android fark etmeksizin)
+          // önizleme ve butonlar yatayda sıkışıp taşma riski YOK, her
+          // zaman tam genişlikte, dikey sıralanıyor.
+          _buildPreview(backgroundColor, mutedColor),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _pickPhoto,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.gold,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
-            ],
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      _photoPath != null ? 'Fotoğrafı Değiştir' : 'Fotoğraf Seç',
+                      style: AppTextStyles.labelSm(color: Colors.white),
+                    ),
+            ),
           ),
+          if (_photoPath != null) ...[
+            const SizedBox(height: 8),
+            Center(
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: TextButton(
+                  onPressed: _isLoading ? null : _removePhoto,
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(0, 0),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'Kaldır ve Ay\'a Geri Dön',
+                    style: AppTextStyles.labelSm(color: mutedColor)
+                        .copyWith(decoration: TextDecoration.underline),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
