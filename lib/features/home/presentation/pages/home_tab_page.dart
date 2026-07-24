@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mustard_seed/features/auth/data/bloc/auth_bloc.dart';
 import 'package:mustard_seed/features/auth/data/state/auth_state.dart';
+import 'package:mustard_seed/features/daily_deed/presentation/widgets/daily_deed_card.dart';
 import 'package:mustard_seed/features/home/domain/repositories/recommended_activity_repository.dart';
 import 'package:mustard_seed/features/home/presentation/widgets/recommended_activities_list_page.dart';
 
@@ -41,7 +42,9 @@ class HomeTabPage extends StatelessWidget {
             const SizedBox(height: 24),
             const VerseCard(),
             const SizedBox(height: 24),
-            const AskQuranQuickCard(),            
+            const AskQuranQuickCard(),
+            const SizedBox(height: 24),
+            const DailyDeedCard(),            
             const SizedBox(height: 28),
             BlocBuilder<HomeBloc, HomeState>(
   builder: (context, state) {

@@ -1,8 +1,11 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../features/auth/data/repositories/supabase_auth_repository.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
+import '../../features/daily_deed/data/repositories/supabase_daily_deed_repository.dart';
+import '../../features/daily_deed/domain/repositories/daily_deed_repository.dart';
 import '../../features/home/domain/repositories/recommended_activity_repository.dart';
 import '../../features/home/domain/repositories/verse_repository.dart';
 
@@ -35,6 +38,9 @@ class AppProviders extends StatelessWidget {
         RepositoryProvider<VerseRepository>.value(value: verseRepository),
         RepositoryProvider<RecommendedActivityRepository>.value(
           value: recommendedActivityRepository,
+        ),
+        RepositoryProvider<DailyDeedRepository>(
+          create: (_) => SupabaseDailyDeedRepository(Supabase.instance.client),
         ),
       ],
       child: child,

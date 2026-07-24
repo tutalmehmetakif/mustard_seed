@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mustard_seed/features/auth/domain/presentation/pages/email_auth_page.dart';
+import 'package:mustard_seed/features/daily_deed/presentation/pages/daily_deed_page.dart';
 
 import '../../features/ask/presentation/pages/ask_page.dart';
 import '../../features/home/presentation/pages/home_shell_page.dart';
@@ -74,6 +75,7 @@ GoRouter buildAppRouter() {
               ),
             ],
           ),
+        
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -82,6 +84,14 @@ GoRouter buildAppRouter() {
               ),
             ],
           ),
+            StatefulShellBranch(
+  routes: [
+    GoRoute(
+      path: '/daily-deed',
+      builder: (context, state) => const DailyDeedPage(),
+    ),
+  ],
+),
           StatefulShellBranch(
             routes: [
               GoRoute(

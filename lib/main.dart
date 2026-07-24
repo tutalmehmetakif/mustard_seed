@@ -5,8 +5,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:mustard_seed/core/di/app_providers.dart';
 import 'package:mustard_seed/features/auth/data/bloc/auth_bloc.dart';
+import 'package:mustard_seed/features/daily_deed/domain/repositories/daily_deed_repository.dart';
+import 'package:mustard_seed/features/daily_deed/presentation/bloc/daily_deed_bloc.dart';
+import 'package:mustard_seed/features/daily_deed/presentation/event/daily_deed_event.dart';
 import 'package:mustard_seed/features/home/data/supabase_recommended_activity_repository.dart';
 import 'package:mustard_seed/features/home/domain/repositories/recommended_activity_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -20,15 +24,20 @@ import 'features/home/data/supabase_verse_repository.dart';
 import 'features/home/data/widget_service.dart';
 import 'features/home/domain/repositories/verse_repository.dart';
 
+import 'package:intl/date_symbol_data_local.dart' hide initializeDateFormatting;
+// ... diğer importlar
+
 void main() {
-  // Yakalanmamış asenkron hataları (örn. bir stream'den beklenmedik bir
-  // hata gelmesi) burada güvenli bir şekilde loglar — böylece uygulama
-  // sessizce çökmek yerine en azından konsola düzgün bir iz bırakır.
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
-      // Supabase projesi: mustard-seed
+      try {
+        await initializeDateFormatting('tr_TR');
+      } catch (error) {
+        debugPrint('Locale başlatma başarısız: $error');
+      }
+
       await Supabase.initialize(
         url: 'https://smdtadmonbyxrklhiyxf.supabase.co',
         anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNtZHRhZG1vbmJ5eHJrbGhpeXhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NzUxMTQsImV4cCI6MjA5ODU1MTExNH0.fffwQXvwCindm3UfqFyWqK_vTqWr_2It3vnv9uMxf9c',
@@ -161,8 +170,15 @@ Widget build(BuildContext context) {
         ),
         // Karanlık mod anahtarı artık kök seviyede sağlanıyor ki
         // MaterialApp.themeMode'a bağlanabilsin (bkz. ThemeCubit yorumu).
-        BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()),
-      ],
+         BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()),
+    // Günün küçük adımı — hem ana sayfadaki kart hem de tam sekme
+    // aynı bloc instance'ını paylaşsın diye kök seviyede sağlanıyor.
+    BlocProvider<DailyDeedBloc>(
+      create: (context) => DailyDeedBloc(
+        repository: context.read<DailyDeedRepository>(),
+      )..add(const DailyDeedStarted()),
+    ),
+  ],
       child: BlocBuilder<ThemeCubit, bool>(
         builder: (context, isDarkMode) {
           return MaterialApp.router(

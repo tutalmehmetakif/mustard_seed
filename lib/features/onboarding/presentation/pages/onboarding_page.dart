@@ -308,22 +308,7 @@ class _OnboardingStepThree extends StatelessWidget {
                                 : () => context.push('/email-auth'),
                           ),
                           const SizedBox(height: 16),
-                          TextButton(
-                            onPressed: isLoading
-                                ? null
-                                : () => context.read<AuthBloc>().add(
-                                      const AuthGuestContinueRequested(),
-                                    ),
-                            child: Text(
-                              'Hesapsız devam et',
-                              style: AppTextStyles.bodyMd(
-                                color: AppColors.textPrimary,
-                              ).copyWith(
-                                decoration: TextDecoration.underline,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
+                          
                         ],
                       );
                     },
